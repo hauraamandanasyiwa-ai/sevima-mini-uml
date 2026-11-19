@@ -1,73 +1,235 @@
-%% Draft v1 - Output awal AI berdasarkan contoh prompt dasar (sebelum validasi & refactoring SOLID)
+%% SEVIMA-Mini Class Diagram (Final - Validated & SOLID Refactored)
+%% Memenuhi: Hierarki User (abstract), 5 Class Inti, Visibility Modifier,
+%% Inheritance, Composition, Aggregation, Association, Dependency,
+%% SOLID (SRP, OCP, DIP), Strategy Pattern, dan Factory Pattern.
 classDiagram
+    %% ==========================================
+    %% 1. HIERARKI USER (Abstraction & Inheritance)
+    %% ==========================================
     class User {
-        +int id
-        +String nama
-        +String username
-        +String password
-        +login() bool
+        <<abstract>>
+        #int id
+        #String nama
+        #String email
+        #String username
+        -String password
+        +login(String username, String password) bool
         +logout() void
+        +getNama() String
+        +tampilkanDashboard()* void
     }
 
     class Mahasiswa {
-        +String nim
-        +String prodi
-        +float ipk
-        +isiKRS() void
-        +validasiKRS() bool
-        +hitungIPK() float
-        +cetakTranskripPDF() void
-        +kirimEmailNotifikasi() void
+        -String nim
+        -int semester
+        -float ipk
+        -String statusAktif
+        -int calonMahasiswaId
+        +getNIM() String
+        +getIPK() float
+        +updateIPK(float ipkBaru) void
+        +isiKRS(Course course) Enrollment
+        +lihatTranskrip() String
+        +scanQRPresensi(String kodeQR) Attendance
+        +tampilkanDashboard() void
     }
 
     class Dosen {
-        +String nidn
-        +inputNilai() void
-        +approveKRS() void
+        -String nidn
+        -String bidangKeahlian
+        +getNIDN() String
+        +inputNilai(Enrollment enrollment, float angka) Grade
+        +approveKRS(Enrollment enrollment) void
+        +tolakKRS(Enrollment enrollment, String alasan) void
+        +buatQRPresensi(Schedule schedule) String
+        +tampilkanDashboard() void
     }
 
     class Admin {
-        +String nip
-        +kelolaData() void
+        -String nip
+        -String departemen
+        +verifikasiBerkasPMB(CalonMahasiswa calon) bool
+        +generateNIM(CalonMahasiswa calon) String
+        +kelolaMataKuliah(Course course) void
+        +kelolaJadwal(Schedule schedule) void
+        +tampilkanDashboard() void
     }
 
     class CalonMahasiswa {
-        +String noDaftar
-        +String statusSeleksi
+        -String noDaftar
+        -String statusSeleksi
+        -String berkasPath
         +daftarPMB() void
+        +unggahBerkas(String filePath) void
+        +cekStatusSeleksi() String
+        +tampilkanDashboard() void
+    }
+
+    %% ==========================================
+    %% 2. ENTITAS AKADEMIK INTI & ORGANISASI
+    %% ==========================================
+    class ProgramStudi {
+        -String kodeProdi
+        -String namaProdi
+        +tambahDosen(Dosen dosen) void
+        +daftarDosen() List~Dosen~
     }
 
     class Course {
-        +String kode
-        +String nama
-        +int sks
-        +List~Course~ prasyarat
+        -String kode
+        -String nama
+        -int sks
+        -int semesterRekomendasi
+        +getKode() String
+        +getSKS() int
+        +getPrasyarat() List~Course~
+        +tambahPrasyarat(Course prasyarat) void
     }
 
     class Enrollment {
-        +String semester
-        +String status
+        -int id
+        -String semester
+        -String tahunAkademik
+        -String status
+        +ajukan() void
+        +setStatus(String status) void
+        +getStatus() String
     }
 
     class Schedule {
-        +String hari
-        +String jam
-        +String ruangan
+        -int id
+        -String hari
+        -String jamMulai
+        -String jamSelesai
+        -String ruangan
+        +isBentrokDengan(Schedule other) bool
+        +getInfoJadwal() String
     }
 
     class Grade {
-        +float nilaiAngka
-        +String nilaiHuruf
+        -float nilaiAngka
+        -String nilaiHuruf
+        -float bobot
+        +konversiHuruf() String
+        +getBobot() float
     }
 
+    class Payment {
+        -int id
+        -String semester
+        -double jumlah
+        -Date tanggalBayar
+        -String status
+        +bayar(double nominal) bool
+        +isLunas() bool
+    }
+
+    class Attendance {
+        -int id
+        -DateTime waktuScan
+        -String kodeQR
+        -String statusHadir
+        +catatKehadiran() void
+    }
+
+    %% ==========================================
+    %% 3. SOLID SERVICES & DESIGN PATTERNS
+    %%    (Strategy, Factory, DIP, SRP)
+    %% ==========================================
+    class IValidationRule {
+        <<interface>>
+        +validate(Mahasiswa mhs, Course course, List~Enrollment~ aktif) bool
+        +getErrorMessage() String
+    }
+
+    class MaxSKSValidationRule {
+        -int batasMaksSKS
+        +validate(Mahasiswa mhs, Course course, List~Enrollment~ aktif) bool
+        +getErrorMessage() String
+    }
+
+    class PrerequisiteValidationRule {
+        +validate(Mahasiswa mhs, Course course, List~Enrollment~ aktif) bool
+        +getErrorMessage() String
+    }
+
+    class ScheduleConflictRule {
+        +validate(Mahasiswa mhs, Course course, List~Enrollment~ aktif) bool
+        +getErrorMessage() String
+    }
+
+    class DuplicateEnrollmentRule {
+        +validate(Mahasiswa mhs, Course course, List~Enrollment~ aktif) bool
+        +getErrorMessage() String
+    }
+
+    class KRSValidator {
+        -List~IValidationRule~ rules
+        +tambahRule(IValidationRule rule) void
+        +validasiKRS(Mahasiswa mhs, Course course, List~Enrollment~ aktif) bool
+    }
+
+    class TranscriptService {
+        +hitungIPS(List~Enrollment~ enrollments) float
+        +hitungIPK(List~Enrollment~ enrollments) float
+        +generateTranskripPDF(Mahasiswa mhs, List~Enrollment~ enrollments) File
+    }
+
+    class INotificationService {
+        <<interface>>
+        +kirimNotifikasi(User penerima, String pesan) void
+    }
+
+    class NotificationService {
+        -String channel
+        +kirimNotifikasi(User penerima, String pesan) void
+    }
+
+    class MahasiswaFactory {
+        +buatDariCalon(CalonMahasiswa calon, String nim) Mahasiswa
+    }
+
+    %% ==========================================
+    %% 4. RELASI ANTAR CLASS (Bebas Circular Dependency)
+    %% ==========================================
+
+    %% Inheritance (is-a)
     User <|-- Mahasiswa
     User <|-- Dosen
     User <|-- Admin
     User <|-- CalonMahasiswa
 
-    Mahasiswa --> Enrollment
-    Course --> Enrollment
-    Course o-- Schedule
-    Schedule --> Dosen
-    Dosen --> Course
-    Mahasiswa --> Grade
+    %% Realization (Implements Interface)
+    IValidationRule <|.. MaxSKSValidationRule
+    IValidationRule <|.. PrerequisiteValidationRule
+    IValidationRule <|.. ScheduleConflictRule
+    IValidationRule <|.. DuplicateEnrollmentRule
+    INotificationService <|.. NotificationService
+
+    %% Composition (Kepemilikan Kuat - wadah hapus, bagian ikut mati)
+    Enrollment "1" *-- "0..1" Grade : memiliki nilai
+    Course "1" *-- "1..*" Schedule : memiliki jadwal
+    Schedule "1" *-- "0..*" Attendance : mencatat presensi
+
+    %% Aggregation (Kepemilikan Lemah - wadah hapus, bagian tetap hidup)
+    ProgramStudi "1" o-- "1..*" Dosen : menaungi
+    ProgramStudi "1" o-- "0..*" Mahasiswa : mendaftarkan
+    KRSValidator "1" o-- "1..*" IValidationRule : menerapkan
+
+    %% Association (Hubungan Struktural & Pemecahan Many-to-Many)
+    Mahasiswa "1" --> "0..*" Enrollment : mengambil
+    Course "1" --> "0..*" Enrollment : diikuti melalui
+    Course "0..*" --> "0..*" Course : prasyarat
+    Mahasiswa "1" --> "0..*" Payment : memiliki tagihan
+    Dosen "1" --> "0..*" Schedule : mengampu
+    Dosen "1" --> "0..*" Mahasiswa : membimbing PA
+    Mahasiswa "1" --> "0..*" Attendance : melakukan presensi
+
+    %% Dependency (Layanan & Factory)
+    Admin ..> CalonMahasiswa : memverifikasi
+    Admin ..> MahasiswaFactory : memicu pembuatan
+    MahasiswaFactory ..> CalonMahasiswa : membaca data
+    MahasiswaFactory ..> Mahasiswa : membuat
+    TranscriptService ..> Enrollment : membaca
+    TranscriptService ..> Grade : menghitung
+    KRSValidator ..> INotificationService : mengirim hasil
