@@ -1,0 +1,73 @@
+%% Draft v1 - Output awal AI berdasarkan contoh prompt dasar (sebelum validasi & refactoring SOLID)
+classDiagram
+    class User {
+        +int id
+        +String nama
+        +String username
+        +String password
+        +login() bool
+        +logout() void
+    }
+
+    class Mahasiswa {
+        +String nim
+        +String prodi
+        +float ipk
+        +isiKRS() void
+        +validasiKRS() bool
+        +hitungIPK() float
+        +cetakTranskripPDF() void
+        +kirimEmailNotifikasi() void
+    }
+
+    class Dosen {
+        +String nidn
+        +inputNilai() void
+        +approveKRS() void
+    }
+
+    class Admin {
+        +String nip
+        +kelolaData() void
+    }
+
+    class CalonMahasiswa {
+        +String noDaftar
+        +String statusSeleksi
+        +daftarPMB() void
+    }
+
+    class Course {
+        +String kode
+        +String nama
+        +int sks
+        +List~Course~ prasyarat
+    }
+
+    class Enrollment {
+        +String semester
+        +String status
+    }
+
+    class Schedule {
+        +String hari
+        +String jam
+        +String ruangan
+    }
+
+    class Grade {
+        +float nilaiAngka
+        +String nilaiHuruf
+    }
+
+    User <|-- Mahasiswa
+    User <|-- Dosen
+    User <|-- Admin
+    User <|-- CalonMahasiswa
+
+    Mahasiswa --> Enrollment
+    Course --> Enrollment
+    Course o-- Schedule
+    Schedule --> Dosen
+    Dosen --> Course
+    Mahasiswa --> Grade
