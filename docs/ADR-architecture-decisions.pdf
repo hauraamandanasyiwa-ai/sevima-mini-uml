@@ -1,0 +1,306 @@
+%PDF-1.4
+%‚„œ”
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [ 8 0 R 10 0 R ] /Count 2 >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Oblique /Encoding /WinAnsiEncoding >>
+endobj
+6 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Courier /Encoding /WinAnsiEncoding >>
+endobj
+7 0 obj
+<< /Length 11833 >>
+stream
+q 0.100 0.200 0.450 rg 44.00 751.89 507.28 56.00 re f Q
+q 1.000 1.000 1.000 rg BT /F2 16.00 Tf 1 0 0 1 58.00 784.89 Tm (Architecture Decision Record \(ADR\)) Tj ET Q
+q 0.820 0.890 0.990 rg BT /F1 9.20 Tf 1 0 0 1 58.00 767.89 Tm (Desain Arsitektur Sistem Informasi Akademik - SEVIMA-Mini \(Materi 1 | Minggu 1\)) Tj ET Q
+q 0.970 0.980 0.990 rg 0.60 w 0.850 0.890 0.930 RG 44.00 709.89 507.28 34.00 re B Q
+q 0.400 0.460 0.550 rg BT /F2 6.70 Tf 1 0 0 1 52.00 731.89 Tm (MATA KULIAH) Tj ET Q
+q 0.080 0.120 0.200 rg BT /F2 7.60 Tf 1 0 0 1 52.00 719.39 Tm (Pemrograman Berorientasi Objek) Tj ET Q
+q 0.400 0.460 0.550 rg BT /F2 6.70 Tf 1 0 0 1 198.00 731.89 Tm (ARTEFAK ACUAN) Tj ET Q
+q 0.080 0.120 0.200 rg BT /F2 7.60 Tf 1 0 0 1 198.00 719.39 Tm (diagrams/class-diagram.mmd) Tj ET Q
+q 0.400 0.460 0.550 rg BT /F2 6.70 Tf 1 0 0 1 334.00 731.89 Tm (STATUS) Tj ET Q
+q 0.080 0.120 0.200 rg BT /F2 7.60 Tf 1 0 0 1 334.00 719.39 Tm (Accepted \(Baseline M1\)) Tj ET Q
+q 0.400 0.460 0.550 rg BT /F2 6.70 Tf 1 0 0 1 452.00 731.89 Tm (PENDEKATAN) Tj ET Q
+q 0.080 0.120 0.200 rg BT /F2 7.60 Tf 1 0 0 1 452.00 719.39 Tm (OOP | SOLID | AI-First) Tj ET Q
+q 0.940 0.970 1.000 rg 0.60 w 0.750 0.860 0.980 RG 44.00 657.89 507.28 44.00 re B Q
+q 0.080 0.360 0.720 rg 44.00 657.89 3.50 44.00 re f Q
+q 0.070 0.230 0.420 rg BT /F1 8.60 Tf 1 0 0 1 55.00 687.89 Tm (Ringkasan: Dokumen ini mendokumentasikan keputusan struktur class, analisis trade-off, serta penerapan prinsip SOLID) Tj ET Q
+q 0.070 0.230 0.420 rg BT /F1 8.60 Tf 1 0 0 1 55.00 675.89 Tm (dan Design Patterns pada Class Diagram SEVIMA-Mini \(modul PMB, KRS, Jadwal & Ruang, Nilai & Transkrip, SPP, dan) Tj ET Q
+q 0.070 0.230 0.420 rg BT /F1 8.60 Tf 1 0 0 1 55.00 663.89 Tm (Presensi QR\) sebagai fondasi implementasi Minggu 3-16.) Tj ET Q
+q 0.100 0.220 0.500 rg BT /F2 11.00 Tf 1 0 0 1 44.00 639.89 Tm (1. Keputusan Struktur Class & Pertimbangan Trade-Off) Tj ET Q
+q 0.90 w 0.100 0.220 0.500 RG 44.00 635.89 m 551.28 635.89 l S Q
+q 1.000 1.000 1.000 rg 0.75 w 0.790 0.840 0.890 RG 44.00 463.49 507.28 162.40 re B Q
+q 0.950 0.970 0.990 rg 0.60 w 0.790 0.840 0.890 RG 44.00 602.89 507.28 23.00 re B Q
+q 0.060 0.120 0.250 rg BT /F2 9.40 Tf 1 0 0 1 54.00 610.89 Tm (ADR-001: Hierarki Abstract User, Encapsulation Ketat & Polymorphism) Tj ET Q
+q 0.860 0.990 0.910 rg 0.50 w 0.530 0.940 0.670 RG 487.28 607.89 54.00 13.00 re B Q
+q 0.090 0.400 0.200 rg BT /F2 7.00 Tf 1 0 0 1 494.78 611.69 Tm (ACCEPTED) Tj ET Q
+q 0.120 0.250 0.560 rg BT /F2 7.60 Tf 1 0 0 1 54.00 589.89 Tm (KEPUTUSAN & ALASAN ARSITEKTUR) Tj ET Q
+q 0.450 0.260 0.060 rg BT /F2 7.60 Tf 1 0 0 1 304.64 589.89 Tm (ALTERNATIF & TRADE-OFF) Tj ET Q
+q 0.60 w 0.890 0.910 0.940 RG 297.64 597.89 m 297.64 469.49 l S Q
+q 0.120 0.250 0.560 rg 56.00 579.89 2.80 2.80 re f Q
+q 0.180 0.240 0.320 rg BT /F1 8.40 Tf 1 0 0 1 64.00 577.89 Tm (User ditetapkan sebagai <<abstract>> karena tidak ada) Tj ET Q
+q 0.180 0.240 0.320 rg BT /F1 8.40 Tf 1 0 0 1 64.00 566.29 Tm (pengguna sistem tanpa peran spesifik.) Tj ET Q
+q 0.120 0.250 0.560 rg 56.00 554.69 2.80 2.80 re f Q
+q 0.180 0.240 0.320 rg BT /F1 8.40 Tf 1 0 0 1 64.00 552.69 Tm (Mahasiswa, Dosen, Admin, dan CalonMahasiswa mewarisi) Tj ET Q
+q 0.180 0.240 0.320 rg BT /F1 8.40 Tf 1 0 0 1 64.00 541.09 Tm (User \(uji is-a valid\) dengan atribut bersama #id, #nama,) Tj ET Q
+q 0.180 0.240 0.320 rg BT /F1 8.40 Tf 1 0 0 1 64.00 529.49 Tm (#email, #username.) Tj ET Q
+q 0.120 0.250 0.560 rg 56.00 517.89 2.80 2.80 re f Q
+q 0.180 0.240 0.320 rg BT /F1 8.40 Tf 1 0 0 1 64.00 515.89 Tm (Atribut sensitif \(-password, -ipk\) wajib private \(-\) agar) Tj ET Q
+q 0.180 0.240 0.320 rg BT /F1 8.40 Tf 1 0 0 1 64.00 504.29 Tm (data tidak diubah sembarangan dari luar class.) Tj ET Q
+q 0.120 0.250 0.560 rg 56.00 492.69 2.80 2.80 re f Q
+q 0.180 0.240 0.320 rg BT /F1 8.40 Tf 1 0 0 1 64.00 490.69 Tm (Method abstrak +tampilkanDashboard\(\)* menerapkan) Tj ET Q
+q 0.180 0.240 0.320 rg BT /F1 8.40 Tf 1 0 0 1 64.00 479.09 Tm (polymorphism sesuai peran masing-masing pengguna.) Tj ET Q
+q 0.120 0.250 0.560 rg 306.64 579.89 2.80 2.80 re f Q
+q 0.180 0.240 0.320 rg BT /F1 8.40 Tf 1 0 0 1 314.64 577.89 Tm (Alternatif: Satu class User konkret dengan atribut String) Tj ET Q
+q 0.180 0.240 0.320 rg BT /F1 8.40 Tf 1 0 0 1 314.64 566.29 Tm (role.) Tj ET Q
+q 0.120 0.250 0.560 rg 306.64 554.69 2.80 2.80 re f Q
+q 0.180 0.240 0.320 rg BT /F1 8.40 Tf 1 0 0 1 314.64 552.69 Tm (Ditolak karena memicu percabangan if/else berbasis role) Tj ET Q
+q 0.180 0.240 0.320 rg BT /F1 8.40 Tf 1 0 0 1 314.64 541.09 Tm (di seluruh modul \(melanggar OCP\) dan menghasilkan banyak) Tj ET Q
+q 0.180 0.240 0.320 rg BT /F1 8.40 Tf 1 0 0 1 314.64 529.49 Tm (field null \(misal nim/nidn\).) Tj ET Q
+q 0.120 0.250 0.560 rg 306.64 517.89 2.80 2.80 re f Q
+q 0.180 0.240 0.320 rg BT /F1 8.40 Tf 1 0 0 1 314.64 515.89 Tm (Trade-off: Jumlah class bertambah \(+4 subclass\), tetapi) Tj ET Q
+q 0.180 0.240 0.320 rg BT /F1 8.40 Tf 1 0 0 1 314.64 504.29 Tm (tipe data jauh lebih aman, terenkapsulasi, dan mudah) Tj ET Q
+q 0.180 0.240 0.320 rg BT /F1 8.40 Tf 1 0 0 1 314.64 492.69 Tm (dipelihara.) Tj ET Q
+q 1.000 1.000 1.000 rg 0.75 w 0.790 0.840 0.890 RG 44.00 293.09 507.28 160.40 re B Q
+q 0.950 0.970 0.990 rg 0.60 w 0.790 0.840 0.890 RG 44.00 430.49 507.28 23.00 re B Q
+q 0.060 0.120 0.250 rg BT /F2 9.40 Tf 1 0 0 1 54.00 438.49 Tm (ADR-002: Transisi CalonMahasiswa ke Mahasiswa via Factory Pattern) Tj ET Q
+q 0.860 0.990 0.910 rg 0.50 w 0.530 0.940 0.670 RG 487.28 435.49 54.00 13.00 re B Q
+q 0.090 0.400 0.200 rg BT /F2 7.00 Tf 1 0 0 1 494.78 439.29 Tm (ACCEPTED) Tj ET Q
+q 0.120 0.250 0.560 rg BT /F2 7.60 Tf 1 0 0 1 54.00 417.49 Tm (KEPUTUSAN & ALASAN ARSITEKTUR) Tj ET Q
+q 0.450 0.260 0.060 rg BT /F2 7.60 Tf 1 0 0 1 304.64 417.49 Tm (ALTERNATIF & TRADE-OFF) Tj ET Q
+q 0.60 w 0.890 0.910 0.940 RG 297.64 425.49 m 297.64 299.09 l S Q
+q 0.120 0.250 0.560 rg 56.00 407.49 2.80 2.80 re f Q
+q 0.180 0.240 0.320 rg BT /F1 8.40 Tf 1 0 0 1 64.00 405.49 Tm (Dalam OOP, objek tidak dapat berganti class saat runtime) Tj ET Q
+q 0.180 0.240 0.320 rg BT /F1 8.40 Tf 1 0 0 1 64.00 393.89 Tm (ketika status pendaftar berubah menjadi mahasiswa aktif.) Tj ET Q
+q 0.120 0.250 0.560 rg 56.00 382.29 2.80 2.80 re f Q
+q 0.180 0.240 0.320 rg BT /F1 8.40 Tf 1 0 0 1 64.00 380.29 Tm (Saat Admin memverifikasi kelulusan PMB,) Tj ET Q
+q 0.180 0.240 0.320 rg BT /F1 8.40 Tf 1 0 0 1 64.00 368.69 Tm (MahasiswaFactory.buatDariCalon\(calon, nim\) membuat) Tj ET Q
+q 0.180 0.240 0.320 rg BT /F1 8.40 Tf 1 0 0 1 64.00 357.09 Tm (objek Mahasiswa baru beserta NIM otomatis.) Tj ET Q
+q 0.120 0.250 0.560 rg 56.00 345.49 2.80 2.80 re f Q
+q 0.180 0.240 0.320 rg BT /F1 8.40 Tf 1 0 0 1 64.00 343.49 Tm (Atribut -calonMahasiswaId disimpan pada Mahasiswa) Tj ET Q
+q 0.180 0.240 0.320 rg BT /F1 8.40 Tf 1 0 0 1 64.00 331.89 Tm (untuk menjaga jejak keterkaitan audit PMB secara) Tj ET Q
+q 0.180 0.240 0.320 rg BT /F1 8.40 Tf 1 0 0 1 64.00 320.29 Tm (permanen.) Tj ET Q
+q 0.120 0.250 0.560 rg 306.64 407.49 2.80 2.80 re f Q
+q 0.180 0.240 0.320 rg BT /F1 8.40 Tf 1 0 0 1 314.64 405.49 Tm (Alternatif: Menggabungkan CalonMahasiswa dan) Tj ET Q
+q 0.180 0.240 0.320 rg BT /F1 8.40 Tf 1 0 0 1 314.64 393.89 Tm (Mahasiswa ke satu class dengan flag status) Tj ET Q
+q 0.180 0.240 0.320 rg BT /F1 8.40 Tf 1 0 0 1 314.64 382.29 Tm (CALON/AKTIF.) Tj ET Q
+q 0.120 0.250 0.560 rg 306.64 370.69 2.80 2.80 re f Q
+q 0.180 0.240 0.320 rg BT /F1 8.40 Tf 1 0 0 1 314.64 368.69 Tm (Ditolak karena mencampur domain PMB dan akademik) Tj ET Q
+q 0.180 0.240 0.320 rg BT /F1 8.40 Tf 1 0 0 1 314.64 357.09 Tm (\(melanggar SRP\) serta membuka celah pendaftar yang) Tj ET Q
+q 0.180 0.240 0.320 rg BT /F1 8.40 Tf 1 0 0 1 314.64 345.49 Tm (belum lulus mengakses KRS/IPK.) Tj ET Q
+q 0.120 0.250 0.560 rg 306.64 333.89 2.80 2.80 re f Q
+q 0.180 0.240 0.320 rg BT /F1 8.40 Tf 1 0 0 1 314.64 331.89 Tm (Trade-off: Memerlukan proses pemetaan atribut melalui) Tj ET Q
+q 0.180 0.240 0.320 rg BT /F1 8.40 Tf 1 0 0 1 314.64 320.29 Tm (factory, namun siklus hidup PMB dan akademik terpisah) Tj ET Q
+q 0.180 0.240 0.320 rg BT /F1 8.40 Tf 1 0 0 1 314.64 308.69 Tm (tegas.) Tj ET Q
+q 1.000 1.000 1.000 rg 0.75 w 0.790 0.840 0.890 RG 44.00 85.89 507.28 197.20 re B Q
+q 0.950 0.970 0.990 rg 0.60 w 0.790 0.840 0.890 RG 44.00 260.09 507.28 23.00 re B Q
+q 0.060 0.120 0.250 rg BT /F2 9.40 Tf 1 0 0 1 54.00 268.09 Tm (ADR-003: Pemecahan Many-to-Many via Enrollment, Grade Composition & Anti-Siklus) Tj ET Q
+q 0.860 0.990 0.910 rg 0.50 w 0.530 0.940 0.670 RG 487.28 265.09 54.00 13.00 re B Q
+q 0.090 0.400 0.200 rg BT /F2 7.00 Tf 1 0 0 1 494.78 268.89 Tm (ACCEPTED) Tj ET Q
+q 0.120 0.250 0.560 rg BT /F2 7.60 Tf 1 0 0 1 54.00 247.09 Tm (KEPUTUSAN & ALASAN ARSITEKTUR) Tj ET Q
+q 0.450 0.260 0.060 rg BT /F2 7.60 Tf 1 0 0 1 304.64 247.09 Tm (ALTERNATIF & TRADE-OFF) Tj ET Q
+q 0.60 w 0.890 0.910 0.940 RG 297.64 255.09 m 297.64 91.89 l S Q
+q 0.120 0.250 0.560 rg 56.00 237.09 2.80 2.80 re f Q
+q 0.180 0.240 0.320 rg BT /F1 8.40 Tf 1 0 0 1 64.00 235.09 Tm (Relasi many-to-many Mahasiswa <-> Course dipecah lewat) Tj ET Q
+q 0.180 0.240 0.320 rg BT /F1 8.40 Tf 1 0 0 1 64.00 223.49 Tm (Enrollment untuk menyimpan semester, tahunAkademik,) Tj ET Q
+q 0.180 0.240 0.320 rg BT /F1 8.40 Tf 1 0 0 1 64.00 211.89 Tm (dan status KRS.) Tj ET Q
+q 0.120 0.250 0.560 rg 56.00 200.29 2.80 2.80 re f Q
+q 0.180 0.240 0.320 rg BT /F1 8.40 Tf 1 0 0 1 64.00 198.29 Tm (Grade terhubung Composition ke Enrollment \(1 *-- 0..1\),) Tj ET Q
+q 0.180 0.240 0.320 rg BT /F1 8.40 Tf 1 0 0 1 64.00 186.69 Tm (bukan langsung ke Mahasiswa, karena nilai selalu milik satu) Tj ET Q
+q 0.180 0.240 0.320 rg BT /F1 8.40 Tf 1 0 0 1 64.00 175.09 Tm (mahasiswa pada satu MK di satu semester.) Tj ET Q
+q 0.120 0.250 0.560 rg 56.00 163.49 2.80 2.80 re f Q
+q 0.180 0.240 0.320 rg BT /F1 8.40 Tf 1 0 0 1 64.00 161.49 Tm (Composition \(Course *-- Schedule, Schedule *--) Tj ET Q
+q 0.180 0.240 0.320 rg BT /F1 8.40 Tf 1 0 0 1 64.00 149.89 Tm (Attendance\) dibedakan tegas dari Aggregation) Tj ET Q
+q 0.180 0.240 0.320 rg BT /F1 8.40 Tf 1 0 0 1 64.00 138.29 Tm (\(ProgramStudi o-- Dosen, ProgramStudi o-- Mahasiswa\).) Tj ET Q
+q 0.120 0.250 0.560 rg 56.00 126.69 2.80 2.80 re f Q
+q 0.180 0.240 0.320 rg BT /F1 8.40 Tf 1 0 0 1 64.00 124.69 Tm (Arah Dosen --> Schedule dipertahankan tanpa Schedule) Tj ET Q
+q 0.180 0.240 0.320 rg BT /F1 8.40 Tf 1 0 0 1 64.00 113.09 Tm (--> Dosen maupun Dosen --> Course guna mencegah) Tj ET Q
+q 0.180 0.240 0.320 rg BT /F1 8.40 Tf 1 0 0 1 64.00 101.49 Tm (circular dependency.) Tj ET Q
+q 0.120 0.250 0.560 rg 306.64 237.09 2.80 2.80 re f Q
+q 0.180 0.240 0.320 rg BT /F1 8.40 Tf 1 0 0 1 314.64 235.09 Tm (Alternatif: Menghubungkan Mahasiswa langsung ke Course) Tj ET Q
+q 0.180 0.240 0.320 rg BT /F1 8.40 Tf 1 0 0 1 314.64 223.49 Tm (\(*--*\) dan Grade langsung ke Mahasiswa.) Tj ET Q
+q 0.120 0.250 0.560 rg 306.64 211.89 2.80 2.80 re f Q
+q 0.180 0.240 0.320 rg BT /F1 8.40 Tf 1 0 0 1 314.64 209.89 Tm (Ditolak karena gagal memodelkan pengulangan mata kuliah) Tj ET Q
+q 0.180 0.240 0.320 rg BT /F1 8.40 Tf 1 0 0 1 314.64 198.29 Tm (di semester berbeda serta membuat Grade kehilangan) Tj ET Q
+q 0.180 0.240 0.320 rg BT /F1 8.40 Tf 1 0 0 1 314.64 186.69 Tm (konteks mata kuliah.) Tj ET Q
+q 0.120 0.250 0.560 rg 306.64 175.09 2.80 2.80 re f Q
+q 0.180 0.240 0.320 rg BT /F1 8.40 Tf 1 0 0 1 314.64 173.09 Tm (Trade-off: Pembacaan nilai mahasiswa membutuhkan) Tj ET Q
+q 0.180 0.240 0.320 rg BT /F1 8.40 Tf 1 0 0 1 314.64 161.49 Tm (traversal satu tingkat lewat Enrollment, namun) Tj ET Q
+q 0.180 0.240 0.320 rg BT /F1 8.40 Tf 1 0 0 1 314.64 149.89 Tm (integritas data transkrip terjamin.) Tj ET Q
+q 0.60 w 0.820 0.860 0.900 RG 44.00 34.00 m 551.28 34.00 l S Q
+q 0.420 0.480 0.560 rg BT /F1 7.80 Tf 1 0 0 1 44.00 22.00 Tm (SEVIMA-Mini | Architecture Decision Record \(ADR\)) Tj ET Q
+q 0.420 0.480 0.560 rg BT /F1 7.80 Tf 1 0 0 1 479.28 22.00 Tm (Halaman 1 dari 2) Tj ET Q
+endstream
+endobj
+8 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R /F4 6 0 R >> >> /Contents 7 0 R >>
+endobj
+9 0 obj
+<< /Length 13212 >>
+stream
+q 0.100 0.220 0.500 rg BT /F2 10.50 Tf 1 0 0 1 44.00 799.89 Tm (Architecture Decision Record \(ADR\) - SEVIMA-Mini) Tj ET Q
+q 0.420 0.480 0.560 rg BT /F1 8.50 Tf 1 0 0 1 436.28 799.89 Tm (Lanjutan | SOLID & Patterns) Tj ET Q
+q 1.00 w 0.100 0.220 0.500 RG 44.00 793.89 m 551.28 793.89 l S Q
+q 1.000 1.000 1.000 rg 0.75 w 0.790 0.840 0.890 RG 44.00 594.29 507.28 185.60 re B Q
+q 0.950 0.970 0.990 rg 0.60 w 0.790 0.840 0.890 RG 44.00 756.89 507.28 23.00 re B Q
+q 0.060 0.120 0.250 rg BT /F2 9.40 Tf 1 0 0 1 54.00 764.89 Tm (ADR-004: Refactoring God Object \(SRP\), Strategy Pattern KRS \(OCP\) & DIP Notifikasi) Tj ET Q
+q 0.860 0.990 0.910 rg 0.50 w 0.530 0.940 0.670 RG 487.28 761.89 54.00 13.00 re B Q
+q 0.090 0.400 0.200 rg BT /F2 7.00 Tf 1 0 0 1 494.78 765.69 Tm (ACCEPTED) Tj ET Q
+q 0.120 0.250 0.560 rg BT /F2 7.60 Tf 1 0 0 1 54.00 743.89 Tm (KEPUTUSAN & ALASAN ARSITEKTUR) Tj ET Q
+q 0.450 0.260 0.060 rg BT /F2 7.60 Tf 1 0 0 1 304.64 743.89 Tm (ALTERNATIF & TRADE-OFF) Tj ET Q
+q 0.60 w 0.890 0.910 0.940 RG 297.64 751.89 m 297.64 600.29 l S Q
+q 0.120 0.250 0.560 rg 56.00 733.89 2.80 2.80 re f Q
+q 0.180 0.240 0.320 rg BT /F1 8.40 Tf 1 0 0 1 64.00 731.89 Tm (Draft AI awal menumpuk validasiKRS\(\), hitungIPK\(\),) Tj ET Q
+q 0.180 0.240 0.320 rg BT /F1 8.40 Tf 1 0 0 1 64.00 720.29 Tm (cetakTranskripPDF\(\), dan kirimEmailNotifikasi\(\) di class) Tj ET Q
+q 0.180 0.240 0.320 rg BT /F1 8.40 Tf 1 0 0 1 64.00 708.69 Tm (Mahasiswa \(God Object\).) Tj ET Q
+q 0.120 0.250 0.560 rg 56.00 697.09 2.80 2.80 re f Q
+q 0.180 0.240 0.320 rg BT /F1 8.40 Tf 1 0 0 1 64.00 695.09 Tm (Dipecah sesuai SRP: Mahasiswa \(biodata & aksi\),) Tj ET Q
+q 0.180 0.240 0.320 rg BT /F1 8.40 Tf 1 0 0 1 64.00 683.49 Tm (KRSValidator \(validasi KRS\), TranscriptService \(IPS/IPK) Tj ET Q
+q 0.180 0.240 0.320 rg BT /F1 8.40 Tf 1 0 0 1 64.00 671.89 Tm (& PDF\), dan NotificationService \(pesan\).) Tj ET Q
+q 0.120 0.250 0.560 rg 56.00 660.29 2.80 2.80 re f Q
+q 0.180 0.240 0.320 rg BT /F1 8.40 Tf 1 0 0 1 64.00 658.29 Tm (Aturan validasi KRS \(maks 24 SKS, prasyarat, jadwal) Tj ET Q
+q 0.180 0.240 0.320 rg BT /F1 8.40 Tf 1 0 0 1 64.00 646.69 Tm (bentrok, anti double enrollment\) dikemas dalam interface) Tj ET Q
+q 0.180 0.240 0.320 rg BT /F1 8.40 Tf 1 0 0 1 64.00 635.09 Tm (IValidationRule \(Strategy Pattern\).) Tj ET Q
+q 0.120 0.250 0.560 rg 56.00 623.49 2.80 2.80 re f Q
+q 0.180 0.240 0.320 rg BT /F1 8.40 Tf 1 0 0 1 64.00 621.49 Tm (KRSValidator bergantung pada abstraksi IValidationRule) Tj ET Q
+q 0.180 0.240 0.320 rg BT /F1 8.40 Tf 1 0 0 1 64.00 609.89 Tm (dan INotificationService \(Dependency Inversion Principle\).) Tj ET Q
+q 0.120 0.250 0.560 rg 306.64 733.89 2.80 2.80 re f Q
+q 0.180 0.240 0.320 rg BT /F1 8.40 Tf 1 0 0 1 314.64 731.89 Tm (Alternatif: Menaruh seluruh logika validasi KRS dan) Tj ET Q
+q 0.180 0.240 0.320 rg BT /F1 8.40 Tf 1 0 0 1 314.64 720.29 Tm (pembuatan PDF di dalam class Mahasiswa atau satu) Tj ET Q
+q 0.180 0.240 0.320 rg BT /F1 8.40 Tf 1 0 0 1 314.64 708.69 Tm (method prosedural panjang.) Tj ET Q
+q 0.120 0.250 0.560 rg 306.64 697.09 2.80 2.80 re f Q
+q 0.180 0.240 0.320 rg BT /F1 8.40 Tf 1 0 0 1 314.64 695.09 Tm (Ditolak karena setiap perubahan format PDF atau) Tj ET Q
+q 0.180 0.240 0.320 rg BT /F1 8.40 Tf 1 0 0 1 314.64 683.49 Tm (kebijakan SKS kampus memaksa modifikasi class inti dan) Tj ET Q
+q 0.180 0.240 0.320 rg BT /F1 8.40 Tf 1 0 0 1 314.64 671.89 Tm (rawan regresi.) Tj ET Q
+q 0.120 0.250 0.560 rg 306.64 660.29 2.80 2.80 re f Q
+q 0.180 0.240 0.320 rg BT /F1 8.40 Tf 1 0 0 1 314.64 658.29 Tm (Trade-off: Bertambah 4 class rule kecil dan 2 interface,) Tj ET Q
+q 0.180 0.240 0.320 rg BT /F1 8.40 Tf 1 0 0 1 314.64 646.69 Tm (namun tiap class memiliki < 8 method dan sangat mudah) Tj ET Q
+q 0.180 0.240 0.320 rg BT /F1 8.40 Tf 1 0 0 1 314.64 635.09 Tm (diuji secara terpisah \(unit testing\).) Tj ET Q
+q 0.100 0.220 0.500 rg BT /F2 11.00 Tf 1 0 0 1 44.00 580.29 Tm (2. Ringkasan Design Patterns & Prinsip SOLID yang Diterapkan) Tj ET Q
+q 0.90 w 0.100 0.220 0.500 RG 44.00 576.29 m 551.28 576.29 l S Q
+q 0.100 0.220 0.500 rg 0.50 w 0.100 0.220 0.500 RG 44.00 544.29 98.00 22.00 re B Q
+q 1.000 1.000 1.000 rg BT /F2 8.00 Tf 1 0 0 1 50.00 552.29 Tm (Pattern / Prinsip) Tj ET Q
+q 0.100 0.220 0.500 rg 0.50 w 0.100 0.220 0.500 RG 142.00 544.29 140.00 22.00 re B Q
+q 1.000 1.000 1.000 rg BT /F2 8.00 Tf 1 0 0 1 148.00 552.29 Tm (Implementasi di SEVIMA-Mini) Tj ET Q
+q 0.100 0.220 0.500 rg 0.50 w 0.100 0.220 0.500 RG 282.00 544.29 148.00 22.00 re B Q
+q 1.000 1.000 1.000 rg BT /F2 8.00 Tf 1 0 0 1 288.00 552.29 Tm (Manfaat Arsitektural) Tj ET Q
+q 0.100 0.220 0.500 rg 0.50 w 0.100 0.220 0.500 RG 430.00 544.29 121.28 22.00 re B Q
+q 1.000 1.000 1.000 rg BT /F2 8.00 Tf 1 0 0 1 436.00 552.29 Tm (Trade-Off & Mitigasi) Tj ET Q
+q 1.000 1.000 1.000 rg 0.55 w 0.800 0.850 0.900 RG 44.00 489.49 98.00 54.80 re B Q
+q 0.120 0.170 0.250 rg BT /F2 8.10 Tf 1 0 0 1 49.00 531.79 Tm (Strategy Pattern) Tj ET Q
+q 0.120 0.170 0.250 rg BT /F2 8.10 Tf 1 0 0 1 49.00 520.59 Tm (\(OCP & DIP\)) Tj ET Q
+q 1.000 1.000 1.000 rg 0.55 w 0.800 0.850 0.900 RG 142.00 489.49 140.00 54.80 re B Q
+q 0.120 0.170 0.250 rg BT /F1 8.10 Tf 1 0 0 1 147.00 531.79 Tm (IValidationRule + MaxSKS,) Tj ET Q
+q 0.120 0.170 0.250 rg BT /F1 8.10 Tf 1 0 0 1 147.00 520.59 Tm (Prerequisite, ScheduleConflict,) Tj ET Q
+q 0.120 0.170 0.250 rg BT /F1 8.10 Tf 1 0 0 1 147.00 509.39 Tm (DuplicateEnrollment dikelola) Tj ET Q
+q 0.120 0.170 0.250 rg BT /F1 8.10 Tf 1 0 0 1 147.00 498.19 Tm (KRSValidator.) Tj ET Q
+q 1.000 1.000 1.000 rg 0.55 w 0.800 0.850 0.900 RG 282.00 489.49 148.00 54.80 re B Q
+q 0.120 0.170 0.250 rg BT /F1 8.10 Tf 1 0 0 1 287.00 531.79 Tm (Aturan KRS baru \(misal syarat lunas) Tj ET Q
+q 0.120 0.170 0.250 rg BT /F1 8.10 Tf 1 0 0 1 287.00 520.59 Tm (SPP\) dapat ditambahkan tanpa) Tj ET Q
+q 0.120 0.170 0.250 rg BT /F1 8.10 Tf 1 0 0 1 287.00 509.39 Tm (mengubah kode KRSValidator.) Tj ET Q
+q 1.000 1.000 1.000 rg 0.55 w 0.800 0.850 0.900 RG 430.00 489.49 121.28 54.80 re B Q
+q 0.120 0.170 0.250 rg BT /F1 8.10 Tf 1 0 0 1 435.00 531.79 Tm (Lebih banyak file class kecil;) Tj ET Q
+q 0.120 0.170 0.250 rg BT /F1 8.10 Tf 1 0 0 1 435.00 520.59 Tm (dimitigasi dengan struktur) Tj ET Q
+q 0.120 0.170 0.250 rg BT /F1 8.10 Tf 1 0 0 1 435.00 509.39 Tm (package krs/rules.) Tj ET Q
+q 0.970 0.980 1.000 rg 0.55 w 0.800 0.850 0.900 RG 44.00 445.89 98.00 43.60 re B Q
+q 0.120 0.170 0.250 rg BT /F2 8.10 Tf 1 0 0 1 49.00 476.99 Tm (Factory Pattern) Tj ET Q
+q 0.120 0.170 0.250 rg BT /F2 8.10 Tf 1 0 0 1 49.00 465.79 Tm (\(Creational\)) Tj ET Q
+q 0.970 0.980 1.000 rg 0.55 w 0.800 0.850 0.900 RG 142.00 445.89 140.00 43.60 re B Q
+q 0.120 0.170 0.250 rg BT /F1 8.10 Tf 1 0 0 1 147.00 476.99 Tm (MahasiswaFactory dengan method) Tj ET Q
+q 0.120 0.170 0.250 rg BT /F1 8.10 Tf 1 0 0 1 147.00 465.79 Tm (buatDariCalon\(calon, nim\) dipicu) Tj ET Q
+q 0.120 0.170 0.250 rg BT /F1 8.10 Tf 1 0 0 1 147.00 454.59 Tm (oleh Admin.) Tj ET Q
+q 0.970 0.980 1.000 rg 0.55 w 0.800 0.850 0.900 RG 282.00 445.89 148.00 43.60 re B Q
+q 0.120 0.170 0.250 rg BT /F1 8.10 Tf 1 0 0 1 287.00 476.99 Tm (Memisahkan logika pembuatan objek) Tj ET Q
+q 0.120 0.170 0.250 rg BT /F1 8.10 Tf 1 0 0 1 287.00 465.79 Tm (Mahasiswa & inisialisasi NIM dari) Tj ET Q
+q 0.120 0.170 0.250 rg BT /F1 8.10 Tf 1 0 0 1 287.00 454.59 Tm (alur seleksi PMB.) Tj ET Q
+q 0.970 0.980 1.000 rg 0.55 w 0.800 0.850 0.900 RG 430.00 445.89 121.28 43.60 re B Q
+q 0.120 0.170 0.250 rg BT /F1 8.10 Tf 1 0 0 1 435.00 476.99 Tm (Menambah 1 lapisan) Tj ET Q
+q 0.120 0.170 0.250 rg BT /F1 8.10 Tf 1 0 0 1 435.00 465.79 Tm (indirection; menjaga) Tj ET Q
+q 0.120 0.170 0.250 rg BT /F1 8.10 Tf 1 0 0 1 435.00 454.59 Tm (konsistensi konstruksi objek.) Tj ET Q
+q 1.000 1.000 1.000 rg 0.55 w 0.800 0.850 0.900 RG 44.00 391.09 98.00 54.80 re B Q
+q 0.120 0.170 0.250 rg BT /F2 8.10 Tf 1 0 0 1 49.00 433.39 Tm (DIP & Kesiapan) Tj ET Q
+q 0.120 0.170 0.250 rg BT /F2 8.10 Tf 1 0 0 1 49.00 422.19 Tm (Observer Pattern) Tj ET Q
+q 1.000 1.000 1.000 rg 0.55 w 0.800 0.850 0.900 RG 142.00 391.09 140.00 54.80 re B Q
+q 0.120 0.170 0.250 rg BT /F1 8.10 Tf 1 0 0 1 147.00 433.39 Tm (Interface INotificationService) Tj ET Q
+q 0.120 0.170 0.250 rg BT /F1 8.10 Tf 1 0 0 1 147.00 422.19 Tm (diimplementasi) Tj ET Q
+q 0.120 0.170 0.250 rg BT /F1 8.10 Tf 1 0 0 1 147.00 410.99 Tm (NotificationService, diinjeksikan) Tj ET Q
+q 0.120 0.170 0.250 rg BT /F1 8.10 Tf 1 0 0 1 147.00 399.79 Tm (ke KRSValidator.) Tj ET Q
+q 1.000 1.000 1.000 rg 0.55 w 0.800 0.850 0.900 RG 282.00 391.09 148.00 54.80 re B Q
+q 0.120 0.170 0.250 rg BT /F1 8.10 Tf 1 0 0 1 287.00 433.39 Tm (Kanal notifikasi \(Email/Push\) mudah) Tj ET Q
+q 0.120 0.170 0.250 rg BT /F1 8.10 Tf 1 0 0 1 287.00 422.19 Tm (diganti dan siap dikembangkan ke) Tj ET Q
+q 0.120 0.170 0.250 rg BT /F1 8.10 Tf 1 0 0 1 287.00 410.99 Tm (Observer untuk event KRS &) Tj ET Q
+q 0.120 0.170 0.250 rg BT /F1 8.10 Tf 1 0 0 1 287.00 399.79 Tm (Presensi QR.) Tj ET Q
+q 1.000 1.000 1.000 rg 0.55 w 0.800 0.850 0.900 RG 430.00 391.09 121.28 54.80 re B Q
+q 0.120 0.170 0.250 rg BT /F1 8.10 Tf 1 0 0 1 435.00 433.39 Tm (Perlu dependency injection) Tj ET Q
+q 0.120 0.170 0.250 rg BT /F1 8.10 Tf 1 0 0 1 435.00 422.19 Tm (saat bootstrap; sangat) Tj ET Q
+q 0.120 0.170 0.250 rg BT /F1 8.10 Tf 1 0 0 1 435.00 410.99 Tm (memudahkan mocking test.) Tj ET Q
+q 0.970 0.980 1.000 rg 0.55 w 0.800 0.850 0.900 RG 44.00 336.29 98.00 54.80 re B Q
+q 0.120 0.170 0.250 rg BT /F2 8.10 Tf 1 0 0 1 49.00 378.59 Tm (Single Responsibility) Tj ET Q
+q 0.120 0.170 0.250 rg BT /F2 8.10 Tf 1 0 0 1 49.00 367.39 Tm (\(SRP\)) Tj ET Q
+q 0.970 0.980 1.000 rg 0.55 w 0.800 0.850 0.900 RG 142.00 336.29 140.00 54.80 re B Q
+q 0.120 0.170 0.250 rg BT /F1 8.10 Tf 1 0 0 1 147.00 378.59 Tm (Ekstraksi TranscriptService,) Tj ET Q
+q 0.120 0.170 0.250 rg BT /F1 8.10 Tf 1 0 0 1 147.00 367.39 Tm (KRSValidator, dan) Tj ET Q
+q 0.120 0.170 0.250 rg BT /F1 8.10 Tf 1 0 0 1 147.00 356.19 Tm (NotificationService dari class) Tj ET Q
+q 0.120 0.170 0.250 rg BT /F1 8.10 Tf 1 0 0 1 147.00 344.99 Tm (Mahasiswa.) Tj ET Q
+q 0.970 0.980 1.000 rg 0.55 w 0.800 0.850 0.900 RG 282.00 336.29 148.00 54.80 re B Q
+q 0.120 0.170 0.250 rg BT /F1 8.10 Tf 1 0 0 1 287.00 378.59 Tm (Menghilangkan God Object \(< 8) Tj ET Q
+q 0.120 0.170 0.250 rg BT /F1 8.10 Tf 1 0 0 1 287.00 367.39 Tm (method/class\); tiap class hanya) Tj ET Q
+q 0.120 0.170 0.250 rg BT /F1 8.10 Tf 1 0 0 1 287.00 356.19 Tm (punya 1 alasan berubah.) Tj ET Q
+q 0.970 0.980 1.000 rg 0.55 w 0.800 0.850 0.900 RG 430.00 336.29 121.28 54.80 re B Q
+q 0.120 0.170 0.250 rg BT /F1 8.10 Tf 1 0 0 1 435.00 378.59 Tm (Koordinasi antar-service) Tj ET Q
+q 0.120 0.170 0.250 rg BT /F1 8.10 Tf 1 0 0 1 435.00 367.39 Tm (meningkat sedikit; dipetakan) Tj ET Q
+q 0.120 0.170 0.250 rg BT /F1 8.10 Tf 1 0 0 1 435.00 356.19 Tm (di Sequence Diagram M2.) Tj ET Q
+q 0.100 0.220 0.500 rg BT /F2 11.00 Tf 1 0 0 1 44.00 318.29 Tm (3. Hasil Validasi Kritis & Rencana Tahap Berikutnya) Tj ET Q
+q 0.90 w 0.100 0.220 0.500 RG 44.00 314.29 m 551.28 314.29 l S Q
+q 0.980 0.990 1.000 rg 0.70 w 0.790 0.840 0.890 RG 44.00 160.29 507.28 144.00 re B Q
+q 0.120 0.250 0.560 rg 56.00 291.79 2.80 2.80 re f Q
+q 0.180 0.240 0.320 rg BT /F1 8.50 Tf 1 0 0 1 64.00 289.79 Tm (Bebas Circular Dependency: Seluruh graf relasi diverifikasi membentuk Directed Acyclic Graph \(DAG\). Satu-satunya relasi) Tj ET Q
+q 0.180 0.240 0.320 rg BT /F1 8.50 Tf 1 0 0 1 64.00 277.99 Tm (ke diri sendiri adalah Course --> Course yang sah untuk memodelkan mata kuliah prasyarat.) Tj ET Q
+q 0.120 0.250 0.560 rg 56.00 266.19 2.80 2.80 re f Q
+q 0.180 0.240 0.320 rg BT /F1 8.50 Tf 1 0 0 1 64.00 264.19 Tm (Kepatuhan Encapsulation & Visibility: Atribut sensitif \(-password, -ipk, -nilaiAngka, -status\) bersifat private \(-\); atribut) Tj ET Q
+q 0.180 0.240 0.320 rg BT /F1 8.50 Tf 1 0 0 1 64.00 252.39 Tm (pewarisan protected \(#\); seluruh antarmuka eksternal bersifat public \(+\).) Tj ET Q
+q 0.120 0.250 0.560 rg 56.00 240.59 2.80 2.80 re f Q
+q 0.180 0.240 0.320 rg BT /F1 8.50 Tf 1 0 0 1 64.00 238.59 Tm (Verifikasi Sintaks & Sinkronisasi: File diagrams/class-diagram.mmd menggunakan sintaks Mermaid standar \(~Type~ untuk) Tj ET Q
+q 0.180 0.240 0.320 rg BT /F1 8.50 Tf 1 0 0 1 64.00 226.79 Tm (generik, <<abstract>>, <<interface>>, dan kardinalitas eksplisit\) serta terdokumentasi proses iterasinya pada) Tj ET Q
+q 0.180 0.240 0.320 rg BT /F1 8.50 Tf 1 0 0 1 64.00 214.99 Tm (prompts/ai-usage-log.md.) Tj ET Q
+q 0.120 0.250 0.560 rg 56.00 203.19 2.80 2.80 re f Q
+q 0.180 0.240 0.320 rg BT /F1 8.50 Tf 1 0 0 1 64.00 201.19 Tm (Peta Kerja Minggu 2 & M3-M16: Desain class ini menjadi kontrak utama untuk penyusunan Use Case Diagram dan Sequence) Tj ET Q
+q 0.180 0.240 0.320 rg BT /F1 8.50 Tf 1 0 0 1 64.00 189.39 Tm (Diagram \(skenario PMB dan Validasi KRS beserta alternate flow / error handling\) di Minggu 2, sebelum masuk ke tahap) Tj ET Q
+q 0.180 0.240 0.320 rg BT /F1 8.50 Tf 1 0 0 1 64.00 177.59 Tm (implementasi kode modul PMB di Minggu 3.) Tj ET Q
+q 0.60 w 0.820 0.860 0.900 RG 44.00 34.00 m 551.28 34.00 l S Q
+q 0.420 0.480 0.560 rg BT /F1 7.80 Tf 1 0 0 1 44.00 22.00 Tm (SEVIMA-Mini | Repo: diagrams/class-diagram.mmd & prompts/ai-usage-log.md) Tj ET Q
+q 0.420 0.480 0.560 rg BT /F1 7.80 Tf 1 0 0 1 479.28 22.00 Tm (Halaman 2 dari 2) Tj ET Q
+endstream
+endobj
+10 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R /F4 6 0 R >> >> /Contents 9 0 R >>
+endobj
+xref
+0 11
+0000000000 65535 f 
+0000000015 00000 n 
+0000000064 00000 n 
+0000000130 00000 n 
+0000000227 00000 n 
+0000000329 00000 n 
+0000000434 00000 n 
+0000000529 00000 n 
+0000012414 00000 n 
+0000012576 00000 n 
+0000025840 00000 n 
+trailer
+<< /Size 11 /Root 1 0 R >>
+startxref
+26003
+%%EOF
