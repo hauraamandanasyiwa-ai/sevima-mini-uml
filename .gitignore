@@ -6,6 +6,11 @@ __pycache__/
 venv/
 env/
 
+# Testing & Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
 # Database lokal
 *.db
 *.sqlite

@@ -54,3 +54,44 @@ class PendaftarOut(BaseModel):
     nim: str | None = None
     created_at: datetime
     approved_at: datetime | None = None
+
+
+class StatusOut(BaseModel):
+    """Skema response publik untuk cek status pendaftaran (GET /api/pmb/status/{id}).
+
+    Sengaja membatasi kolom output agar data pribadi (alamat, tanggal lahir,
+    email, nomor telepon) tidak ikut terekspos pada endpoint pengecekan status.
+    """
+
+    id: int
+    nama_lengkap: str
+    program_studi: str
+    jalur_masuk: str
+    status: StatusPMB
+    nim: str | None = None
+    created_at: datetime
+    approved_at: datetime | None = None
+
+
+class ProdiStatOut(BaseModel):
+    """Jumlah pendaftar per program studi."""
+
+    kode: str
+    nama: str
+    jumlah: int
+
+
+class JalurStatOut(BaseModel):
+    """Jumlah pendaftar per jalur masuk."""
+
+    nama: str
+    jumlah: int
+
+
+class PMBStatsOut(BaseModel):
+    """Skema response statistik dashboard admin PMB (GET /api/pmb/stats)."""
+
+    total_pendaftar: int
+    per_status: dict[str, int]
+    per_program_studi: list[ProdiStatOut]
+    per_jalur_masuk: list[JalurStatOut]
