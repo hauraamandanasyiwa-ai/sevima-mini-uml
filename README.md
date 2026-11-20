@@ -1,8 +1,9 @@
-# SEVIMA-Mini — Desain Sistem Akademis dengan UML (Materi 1 · Minggu 1)
+# SEVIMA-Mini — Desain Sistem Akademis dengan UML (Materi 1 · Minggu 1 & 2)
 
-Repositori ini berisi rancangan arsitektur sistem informasi akademik **SEVIMA-Mini** untuk mata kuliah **Pemrograman Berorientasi Objek (OOP)** dengan pendekatan **AI-First Development**.
+Repositori ini berisi paket desain arsitektur lengkap sistem informasi akademik **SEVIMA-Mini** untuk mata kuliah **Pemrograman Berorientasi Objek (OOP)** dengan pendekatan **AI-First Development**.
 
-Desain pada **Minggu 1 (Eksplorasi & Prompt Engineering)** berfokus pada analisis domain 6 modul akademik, iterasi *prompt engineering*, validasi kritis output AI, refactoring prinsip **SOLID**, serta dokumentasi **Architecture Decision Record (ADR)** sebagai peta implementasi Minggu 3–16.
+- **Minggu 1 (Eksplorasi & Prompt Engineering):** Analisis domain 6 modul akademik, iterasi prompt awal, dan Class Diagram v1.
+- **Minggu 2 (Refinement & Skenario):** Pembuatan *Use Case Diagram*, *Sequence Diagram* (PMB & Validasi KRS dengan *alternate flow*), audit kritik mandiri AI, refactoring *God Object* & prinsip **SOLID** lengkap (SRP, OCP, LSP, ISP, DIP), penerapan pola **Factory + Observer + Strategy**, sinkronisasi seluruh diagram, serta dokumentasi **ADR** & **Final UML PDF**.
 
 ---
 
@@ -11,270 +12,226 @@ Desain pada **Minggu 1 (Eksplorasi & Prompt Engineering)** berfokus pada analisi
 ```text
 .
 ├── diagrams/
-│   └── class-diagram.mmd                # Class Diagram final (Mermaid, SOLID & Design Patterns)
+│   ├── class-diagram.mmd                   # Class Diagram final Minggu 2 (SOLID, Factory, Observer, Strategy)
+│   ├── usecase-diagram.mmd                 # Use Case Diagram (Aktor peran, System Boundary, include/extend)
+│   ├── sequence-pmb.mmd                    # Sequence Diagram PMB (Factory, Async Notification, Alternate Flow)
+│   ├── sequence-krs.mmd                    # Sequence Diagram Validasi KRS (Loop, Self-call, Alternate Flow)
+│   └── before-after/
+│       ├── class-diagram-week1-before.mmd  # Baseline Class Diagram Minggu 1 (sebelum refactor Minggu 2)
+│       ├── before-class-diagram-w1.png     # Screenshot visual Before (Minggu 1)
+│       └── after-class-diagram-w2.png      # Screenshot visual After (Minggu 2)
 ├── prompts/
-│   └── ai-usage-log.md                  # 6 iterasi prompt, perbandingan AI vs revisi manual, OPAR
+│   └── ai-usage-log.md                     # 12 prompt terbaik (Minggu 1 & 2), Before/After, refleksi OPAR
 ├── docs/
-│   ├── domain-analysis.md               # Analisis kata benda & kata kerja (Step 1)
-│   └── ADR-architecture-decisions.pdf   # Architecture Decision Record (2 halaman PDF)
-└── README.md                            # Ringkasan desain & preview diagram
+│   ├── domain-analysis.md                  # Analisis kata benda & kata kerja (Minggu 1)
+│   ├── ADR-architecture-decisions.md       # Sumber teks ADR-001 s.d. ADR-007
+│   ├── ADR-architecture-decisions.pdf      # Architecture Decision Record final (PDF)
+│   └── Final-UML-diagram.pdf               # Paket seluruh UML Diagram final (PDF)
+└── README.md                               # Ringkasan desain, checklist deliverable & preview diagram
 ```
 
 ---
 
-## Ringkasan Deliverables Minggu 1
+## Ringkasan Deliverables & Bobot Penilaian (Minggu 2)
 
-| Deliverable | File | Status | Ringkasan |
-| :--- | :--- | :---: | :--- |
-| **Analisis Domain** | [`docs/domain-analysis.md`](docs/domain-analysis.md) | Selesai | Pemetaan 6 modul (PMB, KRS, Jadwal, Nilai, SPP, Presensi QR) ke kandidat class, atribut, method, dan jenis relasi. |
-| **Class Diagram (35%)** | [`diagrams/class-diagram.mmd`](diagrams/class-diagram.mmd) | Selesai | Hierarki `User <<abstract>>`, 5 class inti (`Course`, `Enrollment`, `Schedule`, `Grade`, `Payment`), `ProgramStudi`, `Attendance`, Strategy Pattern KRS, Factory Pattern PMB, bebas *circular dependency*. |
-| **AI Usage Log (15%)** | [`prompts/ai-usage-log.md`](prompts/ai-usage-log.md) | Selesai | 6 prompt terbaik beranatomi 5 unsur, perbandingan Before/After output AI vs revisi manual, dan refleksi **OPAR**. |
-| **ADR PDF (5%)** | [`docs/ADR-architecture-decisions.pdf`](docs/ADR-architecture-decisions.pdf) | Selesai | 4 keputusan arsitektur (ADR-001 s.d. ADR-004), analisis *trade-off*, dan ringkasan SOLID/Design Patterns. |
-| **Commit Incremental** | Riwayat Git (`git log`) | Selesai | Commit bertahap per langkah pengerjaan dengan penanda `[AI-assisted]` sesuai *AI-First Development Charter*. |
-
----
-
-## Poin Utama Desain Arsitektur
-
-1. **Hierarki User & 5 Pilar OOP**:
-   - `User` sebagai `<<abstract>>` base class dengan 4 turunan valid (*is-a*): `Mahasiswa`, `Dosen`, `Admin`, `CalonMahasiswa`.
-   - **Encapsulation**: atribut sensitif (`-password`, `-ipk`, `-nilaiAngka`) bersifat *private* (`-`), atribut pewarisan *protected* (`#`), method interaksi *public* (`+`).
-   - **Polymorphism**: method abstrak `+tampilkanDashboard()*` diimplementasikan berbeda oleh tiap peran.
-2. **Pemodelan Relasi & Anti-Circular Dependency**:
-   - **Pemecahan Many-to-Many**: `Mahasiswa <-> Course` dipecah melalui `Enrollment`.
-   - **Composition (`*--`)**: `Enrollment *-- Grade`, `Course *-- Schedule`, `Schedule *-- Attendance`.
-   - **Aggregation (`o--`)**: `ProgramStudi o-- Dosen`, `ProgramStudi o-- Mahasiswa`, `KRSValidator o-- IValidationRule`.
-   - **Self-Association**: `Course --> Course` untuk prasyarat mata kuliah.
-   - **Bebas Siklus**: graf relasi diverifikasi bebas *circular dependency*.
-3. **SOLID & Design Patterns**:
-   - **SRP**: menghindari *God Object* dengan memisahkan `KRSValidator`, `TranscriptService`, dan `NotificationService` dari `Mahasiswa`.
-   - **Strategy Pattern (OCP & DIP)**: aturan validasi KRS (`MaxSKSValidationRule`, `PrerequisiteValidationRule`, `ScheduleConflictRule`, `DuplicateEnrollmentRule`) melalui interface `IValidationRule`.
-   - **Factory Pattern**: `MahasiswaFactory` membuat objek `Mahasiswa` baru saat `CalonMahasiswa` lulus PMB dan menyimpan keterkaitan `-calonMahasiswaId`.
+| Deliverable | Bobot | File Utama | Status | Ringkasan |
+| :--- | :---: | :--- | :---: | :--- |
+| **Class Diagram (Revisi)** | **35%** | [`diagrams/class-diagram.mmd`](diagrams/class-diagram.mmd) | Selesai | Bebas *God Object* (< 10 method/class), SOLID lengkap (SRP, OCP, LSP, ISP, DIP), **Factory (`UserFactory`)**, **Observer (`EventBus` + `IEventSubscriber`)**, **Strategy (`IValidationRule`)**, sinkron 100% dengan Sequence Diagram. |
+| **Use Case Diagram** | **20%** | [`diagrams/usecase-diagram.mmd`](diagrams/usecase-diagram.mmd) | Selesai | Aktor: Calon Mahasiswa, Mahasiswa, Dosen Pengampu, Dosen PA, Admin Akademik, Sistem PMB, Layanan Bank. Lengkap dengan `<<include>>` dan `<<extend>>` berarah panah valid. |
+| **Sequence Diagram** | **25%** | [`diagrams/sequence-pmb.mmd`](diagrams/sequence-pmb.mmd)<br>[`diagrams/sequence-krs.mmd`](diagrams/sequence-krs.mmd) | Selesai | 2 skenario utama (PMB & Validasi KRS) lengkap dengan `loop`, *self-call*, pesan asinkron (`-)`), dan **`alt` (*alternate flow* / error handling spesifik)**. |
+| **AI Usage Documentation** | **15%** | [`prompts/ai-usage-log.md`](prompts/ai-usage-log.md) | Selesai | 6 prompt terbaik Minggu 2 (+ 6 Minggu 1), perbandingan *Before vs After*, bukti visual screenshot, dan refleksi **OPAR**. |
+| **ADR (PDF)** | **5%** | [`docs/ADR-architecture-decisions.pdf`](docs/ADR-architecture-decisions.pdf) | Selesai | 7 keputusan arsitektur (ADR-001 s.d. ADR-007) lengkap dengan Konteks, Keputusan, Alternatif & Trade-off, Konsekuensi (+/-), dan Pattern. |
+| **Final UML PDF** | Wajib | [`docs/Final-UML-diagram.pdf`](docs/Final-UML-diagram.pdf) | Selesai | Kompilasi rapi Class Diagram, Use Case Diagram, Sequence PMB, dan Sequence KRS dalam satu dokumen PDF siap kumpul di EdLink. |
 
 ---
 
-## Preview Class Diagram (Mermaid)
+## Preview Diagram UML (Mermaid)
 
-GitHub merender diagram Mermaid di bawah ini secara otomatis (sumber utama: [`diagrams/class-diagram.mmd`](diagrams/class-diagram.mmd)):
+### 1. Use Case Diagram (`diagrams/usecase-diagram.mmd`)
 
 ```mermaid
-classDiagram
-    class User {
-        <<abstract>>
-        #int id
-        #String nama
-        #String email
-        #String username
-        -String password
-        +login(String username, String password) bool
-        +logout() void
-        +getNama() String
-        +tampilkanDashboard()* void
-    }
+flowchart LR
+    CalonMahasiswa(["[Aktor] Calon Mahasiswa"])
+    Mahasiswa(["[Aktor] Mahasiswa"])
+    DosenPengampu(["[Aktor] Dosen Pengampu"])
+    DosenPA(["[Aktor] Dosen PA"])
+    Admin(["[Aktor] Admin Akademik"])
+    SistemPMB(["[Sistem] Sistem PMB"])
+    BankGateway(["[Sistem] Layanan Pembayaran Bank"])
 
-    class Mahasiswa {
-        -String nim
-        -int semester
-        -float ipk
-        -String statusAktif
-        -int calonMahasiswaId
-        +getNIM() String
-        +getIPK() float
-        +updateIPK(float ipkBaru) void
-        +isiKRS(Course course) Enrollment
-        +lihatTranskrip() String
-        +scanQRPresensi(String kodeQR) Attendance
-        +tampilkanDashboard() void
-    }
+    subgraph SEVIMA_Mini ["System Boundary: SEVIMA-Mini"]
+        direction TB
+        UC_Daftar(["Daftar Calon Mahasiswa"])
+        UC_Unggah(["Unggah Berkas PMB"])
+        UC_Verif(["Verifikasi Berkas PMB"])
+        UC_NIM(["Terbitkan NIM & Akun"])
 
-    class Dosen {
-        -String nidn
-        -String bidangKeahlian
-        +getNIDN() String
-        +inputNilai(Enrollment enrollment, float angka) Grade
-        +approveKRS(Enrollment enrollment) void
-        +tolakKRS(Enrollment enrollment, String alasan) void
-        +buatQRPresensi(Schedule schedule) String
-        +tampilkanDashboard() void
-    }
+        UC_IsiKRS(["Isi KRS"])
+        UC_CekPrasyarat(["Cek Prasyarat Mata Kuliah"])
+        UC_CekSKS(["Cek Batas Maks 24 SKS"])
+        UC_CekBentrok(["Cek Jadwal Bentrok"])
+        UC_ApproveKRS(["Approve KRS"])
+        UC_RevisiKRS(["Ajukan Revisi KRS"])
 
-    class Admin {
-        -String nip
-        -String departemen
-        +verifikasiBerkasPMB(CalonMahasiswa calon) bool
-        +generateNIM(CalonMahasiswa calon) String
-        +kelolaMataKuliah(Course course) void
-        +kelolaJadwal(Schedule schedule) void
-        +tampilkanDashboard() void
-    }
+        UC_InputNilai(["Input Nilai"])
+        UC_Transkrip(["Generate Transkrip"])
+        UC_KelolaJadwal(["Kelola Mata Kuliah & Jadwal"])
+        UC_Presensi(["Catat Presensi QR"])
 
-    class CalonMahasiswa {
-        -String noDaftar
-        -String statusSeleksi
-        -String berkasPath
-        +daftarPMB() void
-        +unggahBerkas(String filePath) void
-        +cekStatusSeleksi() String
-        +tampilkanDashboard() void
-    }
+        UC_BayarSPP(["Bayar SPP"])
+        UC_BayarDenda(["Bayar Denda Keterlambatan"])
+    end
 
-    class ProgramStudi {
-        -String kodeProdi
-        -String namaProdi
-        +tambahDosen(Dosen dosen) void
-        +daftarDosen() List~Dosen~
-    }
+    CalonMahasiswa --- UC_Daftar
+    SistemPMB --- UC_Daftar
+    SistemPMB --- UC_Verif
+    Admin --- UC_Verif
+    Admin --- UC_KelolaJadwal
 
-    class Course {
-        -String kode
-        -String nama
-        -int sks
-        -int semesterRekomendasi
-        +getKode() String
-        +getSKS() int
-        +getPrasyarat() List~Course~
-        +tambahPrasyarat(Course prasyarat) void
-    }
+    Mahasiswa --- UC_IsiKRS
+    Mahasiswa --- UC_RevisiKRS
+    Mahasiswa --- UC_Transkrip
+    Mahasiswa --- UC_Presensi
+    Mahasiswa --- UC_BayarSPP
 
-    class Enrollment {
-        -int id
-        -String semester
-        -String tahunAkademik
-        -String status
-        +ajukan() void
-        +setStatus(String status) void
-        +getStatus() String
-    }
+    DosenPA --- UC_ApproveKRS
+    DosenPengampu --- UC_InputNilai
+    DosenPengampu --- UC_Presensi
 
-    class Schedule {
-        -int id
-        -String hari
-        -String jamMulai
-        -String jamSelesai
-        -String ruangan
-        +isBentrokDengan(Schedule other) bool
-        +getInfoJadwal() String
-    }
+    BankGateway --- UC_BayarSPP
 
-    class Grade {
-        -float nilaiAngka
-        -String nilaiHuruf
-        -float bobot
-        +konversiHuruf() String
-        +getBobot() float
-    }
+    UC_Daftar -. "«include»" .-> UC_Unggah
+    UC_IsiKRS -. "«include»" .-> UC_CekPrasyarat
+    UC_IsiKRS -. "«include»" .-> UC_CekSKS
+    UC_IsiKRS -. "«include»" .-> UC_CekBentrok
 
-    class Payment {
-        -int id
-        -String semester
-        -double jumlah
-        -Date tanggalBayar
-        -String status
-        +bayar(double nominal) bool
-        +isLunas() bool
-    }
-
-    class Attendance {
-        -int id
-        -DateTime waktuScan
-        -String kodeQR
-        -String statusHadir
-        +catatKehadiran() void
-    }
-
-    class IValidationRule {
-        <<interface>>
-        +validate(Mahasiswa mhs, Course course, List~Enrollment~ aktif) bool
-        +getErrorMessage() String
-    }
-
-    class MaxSKSValidationRule {
-        -int batasMaksSKS
-        +validate(Mahasiswa mhs, Course course, List~Enrollment~ aktif) bool
-        +getErrorMessage() String
-    }
-
-    class PrerequisiteValidationRule {
-        +validate(Mahasiswa mhs, Course course, List~Enrollment~ aktif) bool
-        +getErrorMessage() String
-    }
-
-    class ScheduleConflictRule {
-        +validate(Mahasiswa mhs, Course course, List~Enrollment~ aktif) bool
-        +getErrorMessage() String
-    }
-
-    class DuplicateEnrollmentRule {
-        +validate(Mahasiswa mhs, Course course, List~Enrollment~ aktif) bool
-        +getErrorMessage() String
-    }
-
-    class KRSValidator {
-        -List~IValidationRule~ rules
-        +tambahRule(IValidationRule rule) void
-        +validasiKRS(Mahasiswa mhs, Course course, List~Enrollment~ aktif) bool
-    }
-
-    class TranscriptService {
-        +hitungIPS(List~Enrollment~ enrollments) float
-        +hitungIPK(List~Enrollment~ enrollments) float
-        +generateTranskripPDF(Mahasiswa mhs, List~Enrollment~ enrollments) File
-    }
-
-    class INotificationService {
-        <<interface>>
-        +kirimNotifikasi(User penerima, String pesan) void
-    }
-
-    class NotificationService {
-        -String channel
-        +kirimNotifikasi(User penerima, String pesan) void
-    }
-
-    class MahasiswaFactory {
-        +buatDariCalon(CalonMahasiswa calon, String nim) Mahasiswa
-    }
-
-    User <|-- Mahasiswa
-    User <|-- Dosen
-    User <|-- Admin
-    User <|-- CalonMahasiswa
-
-    IValidationRule <|.. MaxSKSValidationRule
-    IValidationRule <|.. PrerequisiteValidationRule
-    IValidationRule <|.. ScheduleConflictRule
-    IValidationRule <|.. DuplicateEnrollmentRule
-    INotificationService <|.. NotificationService
-
-    Enrollment "1" *-- "0..1" Grade : memiliki nilai
-    Course "1" *-- "1..*" Schedule : memiliki jadwal
-    Schedule "1" *-- "0..*" Attendance : mencatat presensi
-
-    ProgramStudi "1" o-- "1..*" Dosen : menaungi
-    ProgramStudi "1" o-- "0..*" Mahasiswa : mendaftarkan
-    KRSValidator "1" o-- "1..*" IValidationRule : menerapkan
-
-    Mahasiswa "1" --> "0..*" Enrollment : mengambil
-    Course "1" --> "0..*" Enrollment : diikuti melalui
-    Course "0..*" --> "0..*" Course : prasyarat
-    Mahasiswa "1" --> "0..*" Payment : memiliki tagihan
-    Dosen "1" --> "0..*" Schedule : mengampu
-    Dosen "1" --> "0..*" Mahasiswa : membimbing PA
-    Mahasiswa "1" --> "0..*" Attendance : melakukan presensi
-
-    Admin ..> CalonMahasiswa : memverifikasi
-    Admin ..> MahasiswaFactory : memicu pembuatan
-    MahasiswaFactory ..> CalonMahasiswa : membaca data
-    MahasiswaFactory ..> Mahasiswa : membuat
-    TranscriptService ..> Enrollment : membaca
-    TranscriptService ..> Grade : menghitung
-    KRSValidator ..> INotificationService : mengirim hasil
+    UC_NIM -. "«extend»<br/>[jika lulus seleksi]" .-> UC_Verif
+    UC_RevisiKRS -. "«extend»<br/>[jika ditolak Dosen PA]" .-> UC_ApproveKRS
+    UC_BayarDenda -. "«extend»<br/>[jika lewat jatuh tempo]" .-> UC_BayarSPP
 ```
 
 ---
 
-## Rencana Minggu 2 (Refinement & Skenario)
-- [ ] `diagrams/usecase-diagram.mmd` (Aktor: Mahasiswa, Dosen, Admin, Sistem PMB; relasi `include`/`extend`)
-- [ ] `diagrams/sequence-pmb.mmd` (Skenario pendaftaran mahasiswa baru + *alternate flow*)
-- [ ] `diagrams/sequence-krs.mmd` (Skenario validasi KRS + pengecekan prasyarat, maks 24 SKS, bentrok jadwal + *error handling*)
-- [ ] `docs/Final-UML-diagram.pdf`
+### 2. Sequence Diagram — Pendaftaran Mahasiswa Baru / PMB (`diagrams/sequence-pmb.mmd`)
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor CalonMahasiswa as CalonMahasiswa
+    actor Admin as Admin
+    participant PMBService as PMBService
+    participant PMBRepository as PMBRepository
+    participant UserFactory as UserFactory
+    participant NotificationService as NotificationService
+
+    rect rgb(239, 246, 255)
+        Note over CalonMahasiswa, PMBRepository: Tahap 1 — Pendaftaran Calon Mahasiswa Baru
+        CalonMahasiswa->>+PMBService: daftarPMB(dataDiri, berkasPath)
+        PMBService->>PMBService: validasiKelengkapanBerkas(dataDiri, berkasPath)
+
+        alt Berkas lengkap dan format valid
+            PMBService->>+PMBRepository: simpanPendaftar(calonMahasiswa)
+            PMBRepository-->>-PMBService: noDaftar ("PMB-2026-001")
+            PMBService-->>CalonMahasiswa: Konfirmasi pendaftaran berhasil + noDaftar
+        else Berkas tidak lengkap atau format salah
+            PMBService-->>-CalonMahasiswa: Error spesifik ("Ijazah/KTP belum diunggah atau format bukan PDF")
+        end
+    end
+
+    rect rgb(240, 253, 244)
+        Note over Admin, NotificationService: Tahap 2 — Verifikasi Admin, Factory Pattern & Notifikasi Asinkron
+        Admin->>+PMBService: verifikasiBerkasPMB(noDaftar, statusLulus)
+        PMBService->>+PMBRepository: cariPendaftarByNoDaftar(noDaftar)
+        PMBRepository-->>-PMBService: objek CalonMahasiswa
+
+        alt Berkas valid dan dinyatakan LULUS seleksi
+            PMBService->>PMBService: generateNIM(tahun, kodeProdi, noUrut)
+            PMBService->>+UserFactory: buatMahasiswaDariCalon(calon, nim)
+            UserFactory-->>-PMBService: objek Mahasiswa (NIM & akun aktif)
+
+            PMBService->>+PMBRepository: simpanMahasiswa(mahasiswa)
+            PMBRepository-->>-PMBService: status tersimpan (OK)
+
+            PMBService-)NotificationService: notifySubscribers("PMB_APPROVED", mahasiswa)
+            PMBService-->>Admin: Verifikasi sukses (NIM diterbitkan)
+
+            activate NotificationService
+            NotificationService->>NotificationService: kirimEmailAkun(mahasiswa.email, nim, akun)
+            alt Pengiriman email berhasil
+                NotificationService-)CalonMahasiswa: Email selamat datang berisi NIM & kredensial akun
+            else Pengiriman email gagal (SMTP timeout / jaringan error)
+                NotificationService->>NotificationService: catatLogGagalDanJadwalkanRetry(mahasiswa.id)
+            end
+            deactivate NotificationService
+        else Berkas tidak valid atau TIDAK LULUS seleksi
+            PMBService->>+PMBRepository: updateStatusSeleksi(noDaftar, "DITOLAK", alasan)
+            PMBRepository-->>-PMBService: status diperbarui
+            PMBService-)NotificationService: notifySubscribers("PMB_REJECTED", calon, alasan)
+            PMBService-->>-Admin: Status pendaftar ditandai DITOLAK
+            NotificationService-)CalonMahasiswa: Email penolakan disertai alasan spesifik & panduan revisi
+        end
+    end
+```
+
+---
+
+### 3. Sequence Diagram — Validasi & Pengajuan KRS (`diagrams/sequence-krs.mmd`)
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Mahasiswa as Mahasiswa
+    participant KRSManager as KRSManager
+    participant KRSValidator as KRSValidator
+    participant AkademikRepository as AkademikRepository
+    participant NotificationService as NotificationService
+    actor DosenPA as DosenPA
+
+    Mahasiswa->>+KRSManager: submitKRS(mahasiswa, daftarCourse)
+    KRSManager->>+KRSValidator: validasiKRS(mahasiswa, daftarCourse)
+
+    KRSValidator->>+AkademikRepository: getRiwayatNilaiLulus(mahasiswa.nim)
+    AkademikRepository-->>-KRSValidator: daftarCourseLulus
+
+    KRSValidator->>+AkademikRepository: getEnrollmentAktif(mahasiswa.nim, semesterAktif)
+    AkademikRepository-->>-KRSValidator: daftarEnrollmentAktif
+
+    loop Untuk setiap Course dalam daftarCourse
+        KRSValidator->>KRSValidator: cekPrasyarat(course, daftarCourseLulus)
+        KRSValidator->>KRSValidator: cekDuplicateEnrollment(course, daftarEnrollmentAktif)
+    end
+
+    KRSValidator->>KRSValidator: hitungTotalSKS(daftarCourse, daftarEnrollmentAktif)
+    KRSValidator->>KRSValidator: cekJadwalBentrok(daftarCourse, daftarEnrollmentAktif)
+
+    KRSValidator-->>-KRSManager: ValidationResult(isValid, daftarError)
+
+    alt Semua validasi LOLOS (daftarError kosong)
+        KRSManager->>+AkademikRepository: simpanEnrollment(mahasiswa, daftarCourse, "PENDING_APPROVAL")
+        AkademikRepository-->>-KRSManager: daftarEnrollmentTersimpan
+        KRSManager-)NotificationService: notifySubscribers("KRS_SUBMITTED", mahasiswa, dosenPA)
+        KRSManager-->>Mahasiswa: KRS berhasil diajukan (Status: PENDING_APPROVAL)
+        activate NotificationService
+        NotificationService-)DosenPA: Notifikasi asinkron: Mahasiswa mengajukan KRS untuk direview
+        deactivate NotificationService
+    else Prasyarat mata kuliah belum lulus
+        KRSManager-->>Mahasiswa: KRS Ditolak — Prasyarat belum lulus (sebutkan mata kuliah prasyarat)
+    else Total SKS melebihi batas maksimal 24 SKS
+        KRSManager-->>Mahasiswa: KRS Ditolak — Total SKS melebihi batas (misal: 26 SKS > batas 24 SKS)
+    else Terjadi bentrok jadwal perkuliahan
+        KRSManager-->>Mahasiswa: KRS Ditolak — Jadwal bentrok (sebutkan pasangan mata kuliah & jam)
+    else Terdapat lebih dari satu pelanggaran sekaligus (Multiple Errors)
+        KRSManager-->>-Mahasiswa: KRS Ditolak — Kembalikan seluruh daftarError spesifik sekaligus
+    end
+```
+
+---
+
+### 4. Class Diagram Final (`diagrams/class-diagram.mmd`)
+
+Lihat sumber lengkap di [`diagrams/class-diagram.mmd`](diagrams/class-diagram.mmd) (perbandingan dengan Minggu 1 tersedia di [`diagrams/before-after/`](diagrams/before-after/)).
+
+---
+
+## Kesiapan Implementasi Minggu 3 (Modul PMB)
+Desain `PMBService`, `PMBRepository`, `UserFactory`, dan `sequence-pmb.mmd` siap langsung diturunkan menjadi kode program (skema tabel pendaftar, endpoint `register` & `approve`, generator NIM `tahun + kodeProdi + noUrut`, validasi input, dan unit test) mulai Minggu ke-3.
