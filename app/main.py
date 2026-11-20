@@ -7,10 +7,11 @@ from app.routers.pmb import router as pmb_router
 app = FastAPI(
     title="API Modul PMB (Penerimaan Mahasiswa Baru)",
     description=(
-        "Implementasi Minggu 3 Mata Kuliah Pemrograman Berorientasi Objek: "
-        "SQLAlchemy 2.0, Alembic Migration, dan REST API FastAPI."
+        "Implementasi Materi 2 (Minggu 3 & 4) Mata Kuliah Pemrograman Berorientasi Objek: "
+        "SQLAlchemy 2.0, Alembic Migration, State Machine Approve/Reject, NIM Generator "
+        "(idempotent & race-condition safe), Statistik GROUP BY, dan Pengujian Pytest."
     ),
-    version="0.1.0",
+    version="0.2.0",
 )
 
 
