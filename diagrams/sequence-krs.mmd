@@ -1,0 +1,63 @@
+%% SEVIMA-Mini Sequence Diagram: Validasi & Pengajuan KRS
+%% Partisipan sinkron dengan Class Diagram: KRSManager, KRSValidator, AkademikRepository, NotificationService
+%% Mencakup Loop, Self-Call, Strategy Pattern, Pengumpulan Semua Error, Pesan Asinkron, dan Alternate Flow (alt)
+sequenceDiagram
+    autonumber
+    actor Mahasiswa as Mahasiswa
+    participant KRSManager as KRSManager
+    participant KRSValidator as KRSValidator
+    participant AkademikRepository as AkademikRepository
+    participant NotificationService as NotificationService
+    actor DosenPA as DosenPA
+
+    Mahasiswa->>+KRSManager: submitKRS(mahasiswa, daftarCourse)
+    KRSManager->>+KRSValidator: validasiKRS(mahasiswa, daftarCourse)
+
+    %% ==========================================
+    %% PROSES VALIDASI (LOOP + SELF-CALL)
+    %% ==========================================
+    KRSValidator->>+AkademikRepository: getRiwayatNilaiLulus(mahasiswa.nim)
+    AkademikRepository-->>-KRSValidator: daftarCourseLulus
+
+    KRSValidator->>+AkademikRepository: getEnrollmentAktif(mahasiswa.nim, semesterAktif)
+    AkademikRepository-->>-KRSValidator: daftarEnrollmentAktif
+
+    loop Untuk setiap Course dalam daftarCourse
+        KRSValidator->>KRSValidator: cekPrasyarat(course, daftarCourseLulus)
+        KRSValidator->>KRSValidator: cekDuplicateEnrollment(course, daftarEnrollmentAktif)
+    end
+
+    %% Self-call menghitung total SKS dan cek bentrok jadwal
+    KRSValidator->>KRSValidator: hitungTotalSKS(daftarCourse, daftarEnrollmentAktif)
+    KRSValidator->>KRSValidator: cekJadwalBentrok(daftarCourse, daftarEnrollmentAktif)
+    Note right of KRSValidator: Best practice: kumpulkan SEMUA error<br/>ke dalam ValidationResult (jangan berhenti di error pertama)
+
+    KRSValidator-->>-KRSManager: ValidationResult(isValid, daftarError)
+
+    %% ==========================================
+    %% ALTERNATE FLOW (HAPPY PATH & ERROR HANDLING)
+    %% ==========================================
+    alt Semua validasi LOLOS (daftarError kosong)
+        KRSManager->>+AkademikRepository: simpanEnrollment(mahasiswa, daftarCourse, "PENDING_APPROVAL")
+        AkademikRepository-->>-KRSManager: daftarEnrollmentTersimpan
+
+        %% Pesan Asinkron via Observer Pattern
+        KRSManager-)NotificationService: notifySubscribers("KRS_SUBMITTED", mahasiswa, dosenPA)
+        KRSManager-->>Mahasiswa: KRS berhasil diajukan (Status: PENDING_APPROVAL)
+
+        activate NotificationService
+        NotificationService-)DosenPA: Notifikasi asinkron: Mahasiswa mengajukan KRS untuk direview
+        deactivate NotificationService
+
+    else Prasyarat mata kuliah belum lulus
+        KRSManager-->>Mahasiswa: KRS Ditolak — Prasyarat belum lulus (misal: "Struktur Data wajib lulus Algoritma & Pemrograman")
+
+    else Total SKS melebihi batas maksimal 24 SKS
+        KRSManager-->>Mahasiswa: KRS Ditolak — Total SKS melebihi batas (misal: "Total SKS Anda 26, batas maksimal 24 SKS")
+
+    else Terjadi bentrok jadwal perkuliahan
+        KRSManager-->>Mahasiswa: KRS Ditolak — Jadwal bentrok (misal: "Basis Data & Jaringan Komputer sama-sama Selasa 08:00-10:00")
+
+    else Terdapat lebih dari satu pelanggaran sekaligus (Multiple Errors)
+        KRSManager-->>-Mahasiswa: KRS Ditolak — Kembalikan seluruh daftarError spesifik sekaligus agar mahasiswa tidak bolak-balik submit
+    end
