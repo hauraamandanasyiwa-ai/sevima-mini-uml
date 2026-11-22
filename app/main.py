@@ -9,7 +9,8 @@ from sqlalchemy import inspect, select, text
 from sqlalchemy.orm import Session
 
 from app.database import Base, SessionLocal, engine
-from app.exceptions import GradeError, KRSError, ScheduleError
+from app.exceptions import BillingError, GradeError, KRSError, ScheduleError
+from app.models.billing import Billing, BillingStatus, Payment, PaymentMethod  # noqa: F401
 from app.models.grade import Grade, GradeHistory  # noqa: F401 - pastikan tabel terdaftar di metadata
 from app.models.krs import (
     DEFAULT_SKALA_NILAI,
@@ -22,11 +23,13 @@ from app.models.krs import (
 from app.models.mahasiswa import Mahasiswa
 from app.models.outbox import OutboxEvent  # noqa: F401 - pastikan tabel terdaftar di metadata
 from app.models.schedule import Dosen, Jadwal, Kelas, Ruangan
+from app.routers.billing import router as billing_router
 from app.routers.conflict_resolver import router as conflict_resolver_router
 from app.routers.grades import router as grades_router
 from app.routers.krs import router as krs_router
 from app.routers.schedule import router as schedule_router
 from app.runtime import init_notification_runtime
+from app.services.billing_scheduler import start_billing_scheduler, stop_billing_scheduler
 
 logging.basicConfig(
     level=logging.INFO,
@@ -35,6 +38,7 @@ logging.basicConfig(
 
 _DASHBOARD_HTML_PATH = Path(__file__).parent / "static" / "conflict_resolver.html"
 _GRADES_PORTAL_HTML_PATH = Path(__file__).parent / "static" / "grades_portal.html"
+_FINANCE_DASHBOARD_HTML_PATH = Path(__file__).parent / "static" / "finance_dashboard.html"
 
 
 def seed_skala_nilai(session: Session) -> None:
@@ -51,6 +55,7 @@ def seed_dummy_data(session: Session) -> None:
         ("20240001", "Budi Santoso", "Teknik Informatika", "PA001"),
         ("20240002", "Siti Rahma", "Teknik Informatika", "PA002"),
         ("20240003", "Rina Marlina", "Teknik Informatika", "PA001"),
+        ("20240004", "Andi Wijaya", "Ekonomi Manajemen", "PA002"),
     ]
     for nim, nama, prodi, dosen_pa_id in mahasiswa_spec:
         if session.get(Mahasiswa, nim) is None:
@@ -339,6 +344,107 @@ def seed_grades_dummy_data(session: Session) -> None:
     session.commit()
 
 
+def seed_billing_dummy_data(session: Session) -> None:
+    """Mengisi metode pembayaran & contoh tagihan SPP (Minggu 11) secara idempoten."""
+    from datetime import date, datetime, timezone
+    from decimal import Decimal
+
+    methods_spec = [
+        ("VA_BCA", "Virtual Account BCA"),
+        ("QRIS", "QRIS Nasional"),
+        ("TRANSFER", "Transfer Bank"),
+        ("CASH", "Loket Keuangan"),
+    ]
+    method_map: dict[str, PaymentMethod] = {}
+    for code, name in methods_spec:
+        existing = session.scalars(select(PaymentMethod).where(PaymentMethod.code == code)).first()
+        if existing is None:
+            existing = PaymentMethod(code=code, name=name, is_active=True)
+            session.add(existing)
+            session.flush()
+        method_map[code] = existing
+
+    if session.scalars(select(Billing).limit(1)).first() is not None:
+        session.commit()
+        return
+
+    # Contoh tagihan lintas status (paid, partial, unpaid, overdue) untuk demo Dashboard Keuangan
+    b_budi = Billing(
+        nim="20240001",
+        semester="20251",
+        amount=Decimal("5000000.00"),
+        denda=Decimal("0.00"),
+        paid_amount=Decimal("5000000.00"),
+        due_date=date(2025, 9, 15),
+        status=BillingStatus.PAID,
+    )
+    b_siti = Billing(
+        nim="20240002",
+        semester="20251",
+        amount=Decimal("5000000.00"),
+        denda=Decimal("0.00"),
+        paid_amount=Decimal("2500000.00"),
+        due_date=date(2026, 12, 15),
+        status=BillingStatus.PARTIAL,
+    )
+    b_rina = Billing(
+        nim="20240003",
+        semester="20251",
+        amount=Decimal("5000000.00"),
+        denda=Decimal("100000.00"),
+        paid_amount=Decimal("0.00"),
+        due_date=date(2025, 9, 15),
+        status=BillingStatus.OVERDUE,
+    )
+    b_andi = Billing(
+        nim="20240004",
+        semester="20251",
+        amount=Decimal("4000000.00"),
+        denda=Decimal("0.00"),
+        paid_amount=Decimal("4000000.00"),
+        due_date=date(2025, 9, 15),
+        status=BillingStatus.PAID,
+    )
+    session.add_all([b_budi, b_siti, b_rina, b_andi])
+    session.flush()
+
+    session.add_all(
+        [
+            Payment(
+                billing_id=b_budi.id,
+                payment_method_id=method_map["VA_BCA"].id,
+                transaction_id="SEED-TRX-001",
+                amount=Decimal("5000000.00"),
+                status="paid",
+                source="webhook",
+                paid_at=datetime(2026, 10, 12, 9, 30, tzinfo=timezone.utc),
+                note="Pelunasan SPP Semester 20251",
+            ),
+            Payment(
+                billing_id=b_siti.id,
+                payment_method_id=method_map["QRIS"].id,
+                transaction_id="SEED-TRX-002",
+                amount=Decimal("2500000.00"),
+                status="paid",
+                source="manual",
+                paid_at=datetime(2026, 11, 5, 14, 15, tzinfo=timezone.utc),
+                note="Cicilan pertama 50%",
+            ),
+            Payment(
+                billing_id=b_andi.id,
+                payment_method_id=method_map["TRANSFER"].id,
+                transaction_id="SEED-TRX-003",
+                amount=Decimal("4000000.00"),
+                status="paid",
+                source="webhook",
+                paid_at=datetime(2026, 11, 10, 11, 0, tzinfo=timezone.utc),
+                note="Pelunasan SPP Ekonomi",
+            ),
+        ]
+    )
+    session.commit()
+
+
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     Base.metadata.create_all(bind=engine)
@@ -350,18 +456,23 @@ async def lifespan(_: FastAPI):
         seed_dummy_data(session)
         seed_schedule_dummy_data(session)
         seed_grades_dummy_data(session)
-    yield
+        seed_billing_dummy_data(session)
+    start_billing_scheduler()
+    try:
+        yield
+    finally:
+        stop_billing_scheduler()
 
 
 app = FastAPI(
-    title="SIMAK Mini — Modul Nilai & Transkrip (Minggu 9-10)",
+    title="SIMAK Mini — Modul Keuangan SPP (Minggu 11)",
     description=(
         "SEVIMA Mini terintegrasi (KRS Minggu 5-6 + Jadwal & Ruang Minggu 7-8 + "
-        "Modul Nilai & Transkrip Minggu 9-10): Grade Management (presensi >= 75%), "
-        "GPA Calculator (IPS, IPK, MK diulang ambil tertinggi), Audit Trail (grade_history), "
-        "dan Generator Transkrip Resmi PDF (ReportLab) + HTML + CSV."
+        "Nilai & Transkrip Minggu 9-10 + Modul Keuangan SPP Minggu 11): Billing Generator "
+        "& APScheduler Cron, Payment Workflow + HMAC Webhook Gateway + Email Receipt, "
+        "Block KRS saat menunggak, Dashboard Keuangan Real-Time, dan AI Financial Insights."
     ),
-    version="0.10.0",
+    version="0.11.0",
     lifespan=lifespan,
 )
 
@@ -383,10 +494,17 @@ async def grade_error_handler(_: Request, exc: GradeError) -> JSONResponse:
     return JSONResponse(status_code=exc.status_code, content=exc.body())
 
 
+@app.exception_handler(BillingError)
+async def billing_error_handler(_: Request, exc: BillingError) -> JSONResponse:
+    """Single exception handler polimorfik untuk `BillingError` dan semua turunannya."""
+    return JSONResponse(status_code=exc.status_code, content=exc.body())
+
+
 app.include_router(krs_router)
 app.include_router(schedule_router)
 app.include_router(conflict_resolver_router)
 app.include_router(grades_router)
+app.include_router(billing_router)
 
 
 @app.get("/conflict-resolver", response_class=HTMLResponse, tags=["Conflict Resolver UI"])
@@ -401,6 +519,12 @@ def grades_portal_page() -> HTMLResponse:
     return HTMLResponse(_GRADES_PORTAL_HTML_PATH.read_text(encoding="utf-8"))
 
 
+@app.get("/finance-dashboard", response_class=HTMLResponse, tags=["Finance & Billing UI"])
+def finance_dashboard_page() -> HTMLResponse:
+    """Dashboard Keuangan real-time (tagihan SPP, collection rate, grafik per bulan, webhook, AI insights)."""
+    return HTMLResponse(_FINANCE_DASHBOARD_HTML_PATH.read_text(encoding="utf-8"))
+
+
 @app.get("/health", tags=["Health"])
 def health_check() -> dict[str, str]:
-    return {"status": "ok", "module": "nilai-dan-transkrip-minggu-9-10"}
+    return {"status": "ok", "module": "keuangan-spp-minggu-11"}

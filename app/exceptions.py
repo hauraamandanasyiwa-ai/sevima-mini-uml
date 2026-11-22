@@ -174,3 +174,47 @@ class InvalidGradeValueError(GradeError):
     """400 Bad Request: nilai huruf tidak valid atau alasan perubahan nilai kosong."""
 
     status_code: int = 400
+
+
+# ============================================================================
+# Hierarki Exception Polimorfik untuk Modul Keuangan / SPP (Minggu 11)
+# ============================================================================
+
+
+class BillingArrearsError(KRSError):
+    """403 Forbidden: Mahasiswa memiliki tunggakan SPP sehingga tidak boleh mengisi KRS."""
+
+    status_code: int = 403
+
+
+class BillingError(Exception):
+    """Kelas dasar error modul keuangan & pembayaran SPP."""
+
+    status_code: int = 400
+
+    def __init__(self, message: str, status_code: int | None = None) -> None:
+        super().__init__(message)
+        self.message = message
+        if status_code is not None:
+            self.status_code = status_code
+
+    def body(self) -> dict[str, Any]:
+        return {"detail": self.message}
+
+
+class BillingNotFoundError(BillingError):
+    """404 Not Found: Tagihan atau metode pembayaran tidak ditemukan."""
+
+    status_code: int = 404
+
+
+class InvalidPaymentError(BillingError):
+    """400 Bad Request: Nominal pembayaran tidak valid atau tagihan sudah lunas."""
+
+    status_code: int = 400
+
+
+class InvalidWebhookSignatureError(BillingError):
+    """401 Unauthorized: Signature HMAC-SHA256 webhook payment gateway tidak valid."""
+
+    status_code: int = 401

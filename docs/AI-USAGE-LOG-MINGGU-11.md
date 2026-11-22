@@ -1,0 +1,8 @@
+# AI Usage Log — Minggu 11
+
+| No | Komponen | Kebutuhan & Aturan Bisnis | Verifikasi |
+|---|---|---|---|
+| 1 | Payment Schema & Billing Generator (`app/models/billing.py`, `app/services/billing_service.py`) | 3 tabel (`billing`, `payment`, `payment_method`), status `unpaid`/`partial`/`paid`/`overdue`, tarif Teknik 5jt & Ekonomi 4jt, `due_date` +14 hari, APScheduler cron tiap semester. | Diuji di `test_generate_billing_by_prodi_due_date_and_idempotency` dan `test_ai_financial_insights_from_csv_and_apscheduler_jobs`. |
+| 2 | Payment Workflow, Webhook HMAC, & Receipt Email | Transaksi atomik `partial`/`paid`, verifikasi HMAC-SHA256 (`401` jika invalid), idempotensi `transaction_id`, pengiriman receipt via `LogChannel("email")` setelah commit. | Diuji di `test_payment_workflow_partial_paid_late_fee_and_receipt_email` dan `test_webhook_hmac_verification_idempotency_and_dashboard_api`. |
+| 3 | Block KRS Tunggakan (`app/services/krs_manager.py`) | Mahasiswa menunggak (`overdue` / lewat `due_date`) diblokir isi & submit KRS (`BillingArrearsError` 403), terbuka kembali saat lunas. | Diuji di `test_krs_blocked_when_student_has_overdue_arrears_and_unblocked_after_paid` (dan seluruh 114 tes lama tetap lulus). |
+| 4 | Dashboard Keuangan & AI Financial Insights (`app/static/finance_dashboard.html`, `app/services/ai_financial_report.py`) | Per mahasiswa, collection rate per prodi, grafik per bulan, dan analisis CSV -> JSON (`total_revenue_bulan_ini`, `collection_rate`, `top_10_tunggakan`, `rekomendasi`). | Diverifikasi melalui API `/billing/dashboard`, `/billing/ai-insights`, `/finance-dashboard`, dan unit test CSV. |

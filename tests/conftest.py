@@ -8,6 +8,7 @@ from sqlalchemy.pool import StaticPool
 
 from app.database import Base, get_db
 from app.main import app
+from app.models.billing import PaymentMethod
 from app.models.krs import DEFAULT_SKALA_NILAI, MataKuliah, SkalaNilai
 from app.models.mahasiswa import Mahasiswa
 from app.models.schedule import Dosen, Kelas, Ruangan
@@ -123,6 +124,16 @@ def _seed_test_db(session: Session) -> None:
             Kelas(kode_mk="IF203", nama_kelas="A", kuota=20, semester="20251"),
             Kelas(kode_mk="IF204", nama_kelas="A", kuota=40, semester="20251"),
             Kelas(kode_mk="IF101", nama_kelas="A", kuota=45, semester="20251"),
+        ]
+    )
+
+    # Seed Metode Pembayaran (Minggu 11)
+    session.add_all(
+        [
+            PaymentMethod(code="VA_BCA", name="Virtual Account BCA"),
+            PaymentMethod(code="QRIS", name="QRIS Nasional"),
+            PaymentMethod(code="TRANSFER", name="Transfer Bank"),
+            PaymentMethod(code="CASH", name="Loket Keuangan"),
         ]
     )
     session.commit()

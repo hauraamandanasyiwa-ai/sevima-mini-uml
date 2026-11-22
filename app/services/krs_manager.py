@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session, selectinload
 from sqlalchemy.orm.exc import StaleDataError
 
 from app.exceptions import (
+    BillingArrearsError,
     CourseNotFoundError,
     ForbiddenError,
     KRSError,
@@ -148,8 +149,19 @@ class KRSManager:
             )
         return krs
 
+    def _ensure_no_billing_arrears(self, nim: str) -> None:
+        """Business Rule Minggu 11: Mahasiswa dengan tunggakan SPP tidak bisa isi/submit KRS."""
+        from app.services.billing_service import has_unpaid_arrears
+
+        if has_unpaid_arrears(self._session, nim):
+            raise BillingArrearsError(
+                f"Mahasiswa NIM '{nim}' tidak dapat mengisi atau mengajukan KRS "
+                "karena masih memiliki tunggakan SPP (status overdue / melewati jatuh tempo)."
+            )
+
     def add_course(self, nim: str, semester: str, kode_mk: str) -> KRSDetail:
         """Menambahkan satu mata kuliah ke KRS dalam satu transaksi atomik."""
+        self._ensure_no_billing_arrears(nim)
         krs = self._krs_terkunci(nim, semester, create_if_missing=True)
         assert krs is not None
 
@@ -288,6 +300,8 @@ class KRSManager:
             raise ForbiddenError(
                 f"Mahasiswa '{actor_nim}' tidak berwenang mengajukan KRS milik NIM '{nim}'."
             )
+
+        self._ensure_no_billing_arrears(nim)
 
         try:
             krs = self._krs_terkunci(nim, semester, create_if_missing=False)

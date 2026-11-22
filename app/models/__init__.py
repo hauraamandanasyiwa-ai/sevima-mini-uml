@@ -12,6 +12,7 @@ from app.models.krs import (
     SkalaNilai,
     prerequisites,
 )
+from app.models.billing import Billing, BillingStatus, Payment, PaymentMethod
 from app.models.grade import Grade, GradeHistory
 from app.models.mahasiswa import Mahasiswa
 from app.models.outbox import OutboxEvent, OutboxStatus
@@ -39,4 +40,8 @@ __all__ = [
     "OutboxStatus",
     "Grade",
     "GradeHistory",
+    "BillingStatus",
+    "PaymentMethod",
+    "Billing",
+    "Payment",
 ]
