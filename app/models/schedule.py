@@ -115,6 +115,8 @@ class Jadwal(Base):
     # Bertipe Time (BUKAN string!) untuk mencegah bug perbandingan teks '9:00' > '10:00'
     jam_mulai: Mapped[time] = mapped_column(Time, nullable=False)
     jam_selesai: Mapped[time] = mapped_column(Time, nullable=False)
+    # Nomor revisi event untuk ekspor iCalendar (SEQUENCE bertambah setiap jadwal berubah)
+    sequence: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
 
     kelas: Mapped["Kelas"] = relationship("Kelas", back_populates="jadwals", lazy="joined")
     ruangan: Mapped["Ruangan"] = relationship("Ruangan", lazy="joined")

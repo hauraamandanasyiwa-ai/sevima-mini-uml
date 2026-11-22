@@ -13,6 +13,7 @@ from app.models.krs import (
     prerequisites,
 )
 from app.models.mahasiswa import Mahasiswa
+from app.models.outbox import OutboxEvent, OutboxStatus
 from app.models.schedule import Dosen, Jadwal, Kelas, Ruangan
 
 __all__ = [
@@ -33,4 +34,6 @@ __all__ = [
     "Dosen",
     "Kelas",
     "Jadwal",
+    "OutboxEvent",
+    "OutboxStatus",
 ]

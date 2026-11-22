@@ -1,20 +1,29 @@
-from fastapi import APIRouter, Depends, status
+from datetime import date
+from typing import Optional
+
+from fastapi import APIRouter, Depends, Query, Response, status
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.database import get_db
+from app.models.krs import KRS, KRSDetail
+from app.models.schedule import Jadwal, Kelas
+from app.runtime import get_notification_runtime
 from app.schemas.schedule import (
     ConflictItemOut,
     ConflictListResponse,
     ScheduleInput,
     ScheduleOut,
 )
+from app.services.ical_exporter import export_schedules_to_ics
 from app.services.scheduling_service import ScheduleData, SchedulingService
 
 router = APIRouter(prefix="/schedules", tags=["Schedules"])
 
 
 def get_scheduling_service(db: Session = Depends(get_db)) -> SchedulingService:
-    return SchedulingService(session=db)
+    runtime = get_notification_runtime()
+    return SchedulingService(session=db, dispatcher=runtime.dispatcher)
 
 
 @router.get("", response_model=list[ScheduleOut])
@@ -39,6 +48,42 @@ def list_conflicts(
             ConflictItemOut(type=c.type, affected=list(c.affected))
             for c in conflicts
         ],
+    )
+
+
+@router.get("/export.ics")
+def export_calendar_ics(
+    nim: Optional[str] = Query(default=None, description="Filter jadwal berdasarkan NIM mahasiswa"),
+    semester: Optional[str] = Query(default=None, description="Filter berdasarkan kode semester, mis. 20251"),
+    semester_start: date = Query(default=date(2025, 9, 1), description="Tanggal mulai semester"),
+    semester_end: date = Query(default=date(2025, 12, 20), description="Tanggal akhir semester"),
+    db: Session = Depends(get_db),
+) -> Response:
+    """Mengekspor jadwal kuliah ke format iCalendar (.ics) yang kompatibel
+    dengan Google Calendar, Apple Calendar, dan kalender ponsel.
+    """
+    stmt = select(Jadwal).join(Kelas, Jadwal.kelas_id == Kelas.id)
+    if nim:
+        stmt = (
+            stmt.join(KRSDetail, KRSDetail.kelas_id == Kelas.id)
+            .join(KRS, KRS.id == KRSDetail.krs_id)
+            .where(KRS.nim == nim)
+            .distinct()
+        )
+    if semester:
+        stmt = stmt.where(Kelas.semester == semester)
+    stmt = stmt.order_by(Jadwal.hari, Jadwal.jam_mulai, Jadwal.id)
+
+    jadwals = list(db.scalars(stmt).all())
+    ics_content = export_schedules_to_ics(
+        jadwals,
+        semester_start=semester_start,
+        semester_end=semester_end,
+    )
+    return Response(
+        content=ics_content,
+        media_type="text/calendar; charset=utf-8",
+        headers={"Content-Disposition": 'attachment; filename="jadwal-kuliah.ics"'},
     )
 
 
@@ -67,7 +112,9 @@ def update_schedule(
     payload: ScheduleInput,
     service: SchedulingService = Depends(get_scheduling_service),
 ) -> ScheduleOut:
-    """Memperbarui jadwal kuliah (mengecualikan dirinya sendiri dari cek bentrok)."""
+    """Memperbarui jadwal kuliah, menginvalidasi KRS terdampak ke `revision`,
+    menulis Transactional Outbox, lalu mengirim notifikasi 3 kanal setelah commit.
+    """
     jadwal = service.update_jadwal(
         jadwal_id=jadwal_id,
         data=ScheduleData(
@@ -87,5 +134,7 @@ def delete_schedule(
     jadwal_id: int,
     service: SchedulingService = Depends(get_scheduling_service),
 ) -> None:
-    """Menghapus jadwal kuliah dalam satu transaksi."""
+    """Menghapus jadwal kuliah, menginvalidasi KRS terdampak, dan mengirim event
+    `schedule_deleted` setelah commit.
+    """
     service.delete_jadwal(jadwal_id=jadwal_id)

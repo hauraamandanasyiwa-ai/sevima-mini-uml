@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SIMAK Mini — Conflict Resolver Dashboard</title>
+  <style>
+    :root {
+      --bg: #f4f6fb;
+      --card: #ffffff;
+      --text: #1e293b;
+      --muted: #64748b;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --danger: #dc2626;
+      --warning: #d97706;
+      --success: #16a34a;
+      --border: #e2e8f0;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+    header {
+      background: #0f172a;
+      color: #fff;
+      padding: 18px 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    header h1 { margin: 0; font-size: 1.25rem; }
+    header p { margin: 2px 0 0; font-size: 0.85rem; color: #94a3b8; }
+    .header-actions { display: flex; gap: 10px; align-items: center; }
+    .container { max-width: 1180px; margin: 24px auto; padding: 0 20px 40px; }
+    .grid { display: grid; grid-template-columns: 1.3fr 1fr; gap: 20px; }
+    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px 20px;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+      margin-bottom: 20px;
+    }
+    .card h2 { margin: 0 0 12px; font-size: 1.05rem; display: flex; justify-content: space-between; align-items: center; }
+    .badge {
+      display: inline-block;
+      padding: 2px 9px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .badge-room { background: #fee2e2; color: #b91c1c; }
+    .badge-lecturer { background: #fef3c7; color: #b45309; }
+    .badge-approved { background: #dcfce7; color: #15803d; }
+    .badge-revision { background: #fef3c7; color: #b45309; }
+    .badge-submitted { background: #dbeafe; color: #1d4ed8; }
+    .badge-draft { background: #f1f5f9; color: #475569; }
+    .badge-email { background: #dbeafe; color: #1e40af; }
+    .badge-sms { background: #ede9fe; color: #5b21b6; }
+    .badge-push { background: #dcfce7; color: #166534; }
+    button, a.btn {
+      border: none;
+      border-radius: 6px;
+      padding: 7px 13px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: var(--primary-hover); }
+    .btn-success { background: var(--success); color: #fff; }
+    .btn-success:hover { background: #15803d; }
+    .btn-outline { background: #fff; color: var(--text); border: 1px solid var(--border); }
+    .btn-outline:hover { background: #f8fafc; }
+    .conflict-box {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin-bottom: 12px;
+      background: #fcfdff;
+    }
+    .schedule-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 0;
+      border-top: 1px dashed var(--border);
+      flex-wrap: wrap;
+    }
+    .schedule-row:first-of-type { border-top: none; }
+    .suggestion-card {
+      border: 1px solid #bfdbfe;
+      background: #eff6ff;
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .alert {
+      padding: 10px 14px;
+      border-radius: 8px;
+      margin-bottom: 14px;
+      font-size: 0.88rem;
+      display: none;
+    }
+    .alert-ok { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+    .alert-err { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
+    th, td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    th { color: var(--muted); font-weight: 600; background: #f8fafc; }
+    .muted { color: var(--muted); font-size: 0.84rem; }
+    .log-list { max-height: 290px; overflow-y: auto; }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>SIMAK Mini — Conflict Resolver Dashboard</h1>
+      <p>Modul Jadwal &amp; Ruang (Minggu 8) • Observer + Outbox + KRS Integration + AI Rescheduler</p>
+    </div>
+    <div class="header-actions">
+      <a class="btn btn-outline" href="/schedules/export.ics" target="_blank">Ekspor Kalender (.ics)</a>
+      <a class="btn btn-outline" href="/docs" target="_blank">Swagger API</a>
+      <button class="btn-primary" onclick="refreshAll()">Muat Ulang</button>
+    </div>
+  </header>
+
+  <div class="container">
+    <div id="alertBox" class="alert"></div>
+
+    <div class="grid">
+      <div>
+        <div class="card">
+          <h2>
+            <span>1. Daftar Bentrok Jadwal</span>
+            <span id="conflictCount" class="badge badge-room">0 bentrok</span>
+          </h2>
+          <p class="muted">Pilih salah satu jadwal yang bentrok untuk meminta sampai 3 saran alternatif dari AI (disaring 4 tahap oleh validator sistem).</p>
+          <div id="conflictsList"><p class="muted">Memuat daftar bentrok...</p></div>
+        </div>
+
+        <div class="card">
+          <h2>
+            <span>2. Saran Penjadwalan Ulang AI</span>
+            <span id="selectedJadwalLabel" class="muted">Belum ada jadwal dipilih</span>
+          </h2>
+          <div id="suggestionsList">
+            <p class="muted">Klik tombol <strong>Minta Saran AI</strong> pada jadwal yang bentrok di atas.</p>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="card">
+          <h2><span>3. Status KRS Mahasiswa</span></h2>
+          <p class="muted">KRS berstatus <code>approved</code> atau <code>submitted</code> yang mengambil kelas terdampak otomatis kembali ke <code>revision</code>.</p>
+          <div id="krsList"><p class="muted">Memuat status KRS...</p></div>
+        </div>
+
+        <div class="card">
+          <h2>
+            <span>4. Log Notifikasi (Email, SMS, Push)</span>
+            <span id="logCount" class="badge badge-submitted">0 log</span>
+          </h2>
+          <p class="muted">Dikirim SETELAH transaksi di-commit melalui Transactional Outbox &amp; Observer Pattern.</p>
+          <div id="logsList" class="log-list"><p class="muted">Belum ada notifikasi terkirim.</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const ADMIN_HEADERS = { "X-Role": "admin_akademik", "Content-Type": "application/json" };
+    let selectedJadwalId = null;
+
+    function showAlert(msg, isError = false) {
+      const box = document.getElementById("alertBox");
+      box.textContent = msg;
+      box.className = "alert " + (isError ? "alert-err" : "alert-ok");
+      box.style.display = "block";
+    }
+
+    async function loadConflicts() {
+      const res = await fetch("/admin/conflicts", { headers: ADMIN_HEADERS });
+      const data = await res.json();
+      document.getElementById("conflictCount").textContent = `${data.total_conflicts} bentrok`;
+      const container = document.getElementById("conflictsList");
+      if (!data.conflicts.length) {
+        container.innerHTML = `<p style="color:#16a34a;font-weight:600;">Tidak ada bentrok jadwal. Semua slot aman!</p>`;
+        return;
+      }
+      container.innerHTML = data.conflicts.map(c => {
+        const badgeClass = c.type === "room_conflict" ? "badge-room" : "badge-lecturer";
+        const typeLabel = c.type === "room_conflict" ? "Bentrok Ruangan" : "Bentrok Dosen";
+        const rows = c.schedules.map(s => `
+          <div class="schedule-row">
+            <div>
+              <strong>#${s.id} ${s.kode_mk}-${s.nama_kelas}</strong> (${s.nama_mk})<br/>
+              <span class="muted">${s.hari_nama} ${s.jam_mulai}-${s.jam_selesai} • Ruang ${s.ruangan_kode} • ${s.dosen_nama}</span>
+            </div>
+            <button class="btn-primary" onclick="requestSuggestions(${s.id}, '${s.kode_mk}-${s.nama_kelas}')">
+              Minta Saran AI
+            </button>
+          </div>
+        `).join("");
+        return `
+          <div class="conflict-box">
+            <div style="margin-bottom:6px;">
+              <span class="badge ${badgeClass}">${typeLabel}</span>
+              <span class="muted">Jadwal terlibat: #${c.affected.join(", #")}</span>
+            </div>
+            ${rows}
+          </div>
+        `;
+      }).join("");
+    }
+
+    async function requestSuggestions(jadwalId, label) {
+      selectedJadwalId = jadwalId;
+      document.getElementById("selectedJadwalLabel").textContent = `Jadwal #${jadwalId} (${label})`;
+      const container = document.getElementById("suggestionsList");
+      container.innerHTML = `<p class="muted">Meminta saran AI dan menjalankan 4 tahap validasi...</p>`;
+      try {
+        const res = await fetch(`/admin/conflicts/${jadwalId}/suggest`, {
+          method: "POST",
+          headers: ADMIN_HEADERS,
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          showAlert(data.detail || "Gagal memuat saran.", true);
+          return;
+        }
+        if (!data.suggestions.length) {
+          container.innerHTML = `<p class="muted">Tidak ada saran yang lolos 4 tahap validator.</p>`;
+          return;
+        }
+        container.innerHTML = data.suggestions.map(s => `
+          <div class="suggestion-card">
+            <div>
+              <strong>${s.hari_nama} ${s.jam_mulai}-${s.jam_selesai} • Ruang ${s.ruangan_kode}</strong><br/>
+              <span class="muted">${s.alasan}</span>
+            </div>
+            <button class="btn-success" onclick='applySuggestion(${jadwalId}, ${JSON.stringify(s)})'>
+              Terapkan
+            </button>
+          </div>
+        `).join("");
+      } catch (err) {
+        showAlert("Terjadi kesalahan jaringan saat meminta saran.", true);
+      }
+    }
+
+    async function applySuggestion(jadwalId, s) {
+      try {
+        const res = await fetch(`/admin/conflicts/${jadwalId}/apply`, {
+          method: "POST",
+          headers: ADMIN_HEADERS,
+          body: JSON.stringify({
+            hari: s.hari,
+            jam_mulai: s.jam_mulai,
+            jam_selesai: s.jam_selesai,
+            ruangan_kode: s.ruangan_kode,
+          }),
+        });
+        const data = await res.json();
+        if (res.status === 409) {
+          showAlert(`HTTP 409 Conflict: ${data.detail || "Slot sudah terisi."} Silakan muat ulang saran.`, true);
+          return;
+        }
+        if (!res.ok) {
+          showAlert(data.detail || "Gagal menerapkan saran.", true);
+          return;
+        }
+        showAlert(`Jadwal #${jadwalId} berhasil dipindah ke ${s.hari_nama} ${s.jam_mulai}-${s.jam_selesai} (Ruang ${s.ruangan_kode}). KRS terdampak dikembalikan ke revisi & notifikasi 3 kanal terkirim!`);
+        document.getElementById("suggestionsList").innerHTML = `<p class="muted">Saran berhasil diterapkan. Pilih bentrok lain jika masih ada.</p>`;
+        await refreshAll();
+      } catch (err) {
+        showAlert("Gagal menghubungi server.", true);
+      }
+    }
+
+    async function loadKrs() {
+      const res = await fetch("/admin/krs/status", { headers: ADMIN_HEADERS });
+      const rows = await res.json();
+      const container = document.getElementById("krsList");
+      if (!rows.length) {
+        container.innerHTML = `<p class="muted">Belum ada data KRS.</p>`;
+        return;
+      }
+      container.innerHTML = `
+        <table>
+          <thead><tr><th>NIM</th><th>Sem</th><th>Status</th><th>Catatan</th></tr></thead>
+          <tbody>
+            ${rows.map(r => `
+              <tr>
+                <td>${r.nim}</td>
+                <td>${r.semester}</td>
+                <td><span class="badge badge-${r.status}">${r.status}</span></td>
+                <td class="muted">${r.revision_note || "-"}</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      `;
+    }
+
+    async function loadLogs() {
+      const res = await fetch("/admin/notifications/logs", { headers: ADMIN_HEADERS });
+      const data = await res.json();
+      document.getElementById("logCount").textContent = `${data.total_logs} log`;
+      const container = document.getElementById("logsList");
+      if (!data.logs.length) {
+        container.innerHTML = `<p class="muted">Belum ada notifikasi terkirim. Ubah atau terapkan satu jadwal untuk melihat log 3 kanal (email, sms, push).</p>`;
+        return;
+      }
+      container.innerHTML = `
+        <table>
+          <thead><tr><th>Kanal</th><th>Penerima</th><th>Pesan</th></tr></thead>
+          <tbody>
+            ${data.logs.map(l => `
+              <tr>
+                <td><span class="badge badge-${l.channel}">${l.channel.toUpperCase()}</span></td>
+                <td>${l.recipient}</td>
+                <td><strong>${l.subject}</strong><br/><span class="muted">${l.message}</span></td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      `;
+    }
+
+    async function refreshAll() {
+      await Promise.all([loadConflicts(), loadKrs(), loadLogs()]);
+    }
+
+    refreshAll();
+  </script>
+</body>
+</html>

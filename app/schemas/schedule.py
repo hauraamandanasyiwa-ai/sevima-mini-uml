@@ -1,5 +1,5 @@
-from datetime import time
-from typing import Literal
+from datetime import datetime, time
+from typing import Literal, Optional
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -36,6 +36,7 @@ class ScheduleOut(BaseModel):
     hari: int
     jam_mulai: time
     jam_selesai: time
+    sequence: int = 0
 
 
 class ConflictItemOut(BaseModel):
@@ -46,3 +47,96 @@ class ConflictItemOut(BaseModel):
 class ConflictListResponse(BaseModel):
     total_conflicts: int
     conflicts: list[ConflictItemOut]
+
+
+# ============================================================================
+# Schema Conflict Resolver, AI Rescheduler, & Monitoring Notifikasi (Minggu 8)
+# ============================================================================
+
+
+class ScheduleSummaryOut(BaseModel):
+    id: int
+    kelas_id: int
+    kode_mk: str
+    nama_mk: str
+    nama_kelas: str
+    ruangan_kode: str
+    dosen_id: int
+    dosen_nama: str
+    hari: int
+    hari_nama: str
+    jam_mulai: str
+    jam_selesai: str
+    sequence: int
+
+
+class AdminConflictItemOut(BaseModel):
+    type: Literal["room_conflict", "lecturer_conflict"]
+    affected: list[int]
+    schedules: list[ScheduleSummaryOut]
+
+
+class AdminConflictListResponse(BaseModel):
+    total_conflicts: int
+    conflicts: list[AdminConflictItemOut]
+
+
+class RescheduleSuggestionOut(BaseModel):
+    hari: int
+    hari_nama: str
+    jam_mulai: str
+    jam_selesai: str
+    ruangan_kode: str
+    alasan: str
+
+
+class RescheduleSuggestResponse(BaseModel):
+    jadwal_id: int
+    suggestions: list[RescheduleSuggestionOut]
+
+
+class ApplySuggestionInput(BaseModel):
+    hari: int = Field(..., ge=1, le=6)
+    jam_mulai: time
+    jam_selesai: time
+    ruangan_kode: str = Field(..., min_length=1, max_length=16)
+
+    @model_validator(mode="after")
+    def validate_time_range(self) -> "ApplySuggestionInput":
+        if self.jam_selesai <= self.jam_mulai:
+            raise ValueError("jam_selesai harus lebih lambat daripada jam_mulai.")
+        return self
+
+
+class NotificationLogOut(BaseModel):
+    channel: str
+    recipient: str
+    subject: str
+    message: str
+    idempotency_key: str
+    sent_at: datetime
+
+
+class OutboxEventOut(BaseModel):
+    id: int
+    event_id: str
+    event_type: str
+    status: str
+    attempts: int
+    last_error: Optional[str] = None
+    created_at: datetime
+    sent_at: Optional[datetime] = None
+
+
+class NotificationAuditResponse(BaseModel):
+    total_logs: int
+    logs: list[NotificationLogOut]
+    outbox: list[OutboxEventOut]
+
+
+class KRSStatusItemOut(BaseModel):
+    krs_id: int
+    nim: str
+    semester: str
+    status: str
+    revision_note: Optional[str] = None

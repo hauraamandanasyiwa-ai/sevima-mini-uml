@@ -61,27 +61,32 @@ class KRSAktor(str, enum.Enum):
 
     MAHASISWA = "mahasiswa"
     DOSEN_PA = "dosen_pa"
+    SYSTEM = "system"
 
 
 EDITABLE_KRS_STATUSES: frozenset[KRSStatus] = frozenset(
     {KRSStatus.DRAFT, KRSStatus.REVISION}
 )
 
-# Tabel Transisi State Machine KRS:
+# Tabel Transisi State Machine KRS (diperbarui Minggu 8):
 # Kunci  : (status_saat_ini, aktor)
 # Nilai  : himpunan status tujuan yang sah
 #
-# - DRAFT    + mahasiswa -> {SUBMITTED}
-# - SUBMITTED + dosen_pa -> {APPROVED, REVISION}
-# - REVISION + mahasiswa -> {SUBMITTED}
-# - APPROVED adalah terminal state (tidak ada transisi keluar).
-# - DRAFT -> APPROVED dan REVISION -> APPROVED secara eksplisit TIDAK ADA.
+# - DRAFT     + mahasiswa -> {SUBMITTED}
+# - SUBMITTED + dosen_pa  -> {APPROVED, REVISION}
+# - REVISION  + mahasiswa -> {SUBMITTED}
+# - SUBMITTED + system    -> {REVISION}  (Minggu 8: invalidasi otomatis saat jadwal berubah/dihapus)
+# - APPROVED  + system    -> {REVISION}  (Minggu 8: invalidasi otomatis saat jadwal berubah/dihapus)
+# - Total 4 state x 4 state x 3 aktor = 48 kombinasi (6 sah + 42 ilegal).
+# - DRAFT -> APPROVED dan REVISION -> APPROVED tetap secara eksplisit TIDAK ADA.
 KRS_TRANSITIONS: dict[tuple[KRSStatus, str], frozenset[KRSStatus]] = {
     (KRSStatus.DRAFT, KRSAktor.MAHASISWA.value): frozenset({KRSStatus.SUBMITTED}),
     (KRSStatus.SUBMITTED, KRSAktor.DOSEN_PA.value): frozenset(
         {KRSStatus.APPROVED, KRSStatus.REVISION}
     ),
     (KRSStatus.REVISION, KRSAktor.MAHASISWA.value): frozenset({KRSStatus.SUBMITTED}),
+    (KRSStatus.SUBMITTED, KRSAktor.SYSTEM.value): frozenset({KRSStatus.REVISION}),
+    (KRSStatus.APPROVED, KRSAktor.SYSTEM.value): frozenset({KRSStatus.REVISION}),
 }
 
 

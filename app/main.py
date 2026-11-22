@@ -1,9 +1,11 @@
+import logging
 from contextlib import asynccontextmanager
 from datetime import time
+from pathlib import Path
 
 from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
-from sqlalchemy import select
+from fastapi.responses import HTMLResponse, JSONResponse
+from sqlalchemy import inspect, select, text
 from sqlalchemy.orm import Session
 
 from app.database import Base, SessionLocal, engine
@@ -17,9 +19,19 @@ from app.models.krs import (
     SkalaNilai,
 )
 from app.models.mahasiswa import Mahasiswa
+from app.models.outbox import OutboxEvent  # noqa: F401 - pastikan tabel terdaftar di metadata
 from app.models.schedule import Dosen, Jadwal, Kelas, Ruangan
+from app.routers.conflict_resolver import router as conflict_resolver_router
 from app.routers.krs import router as krs_router
 from app.routers.schedule import router as schedule_router
+from app.runtime import init_notification_runtime
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
+)
+
+_DASHBOARD_HTML_PATH = Path(__file__).parent / "static" / "conflict_resolver.html"
 
 
 def seed_skala_nilai(session: Session) -> None:
@@ -32,24 +44,16 @@ def seed_skala_nilai(session: Session) -> None:
 
 def seed_dummy_data(session: Session) -> None:
     """Mengisi data dummy KRS (Minggu 5 & 6) secara idempoten."""
-    if session.get(Mahasiswa, "20240001") is None:
-        session.add(
-            Mahasiswa(
-                nim="20240001",
-                nama="Budi Santoso",
-                prodi="Teknik Informatika",
-                dosen_pa_id="PA001",
+    mahasiswa_spec = [
+        ("20240001", "Budi Santoso", "Teknik Informatika", "PA001"),
+        ("20240002", "Siti Rahma", "Teknik Informatika", "PA002"),
+        ("20240003", "Rina Marlina", "Teknik Informatika", "PA001"),
+    ]
+    for nim, nama, prodi, dosen_pa_id in mahasiswa_spec:
+        if session.get(Mahasiswa, nim) is None:
+            session.add(
+                Mahasiswa(nim=nim, nama=nama, prodi=prodi, dosen_pa_id=dosen_pa_id)
             )
-        )
-    if session.get(Mahasiswa, "20240002") is None:
-        session.add(
-            Mahasiswa(
-                nim="20240002",
-                nama="Siti Rahma",
-                prodi="Teknik Informatika",
-                dosen_pa_id="PA002",
-            )
-        )
 
     courses_spec = [
         ("IF101", "Algoritma dan Pemrograman", 3, 1, time(8, 0), time(10, 30), True),
@@ -122,11 +126,13 @@ def seed_dummy_data(session: Session) -> None:
 
 
 def seed_schedule_dummy_data(session: Session) -> None:
-    """Mengisi data dummy Ruang, Dosen, Kelas, dan Jadwal (Minggu 7) secara idempoten.
+    """Mengisi data dummy Ruang, Dosen, Kelas, Jadwal, dan KRS aktif Rina (Minggu 7 & 8)
+    secara idempoten.
 
-    Sengaja menyertakan 2 konflik awal (seperti data lama hasil impor sebelum
-    SchedulingService aktif) agar `GET /schedules/conflicts` langsung memperlihatkan
-    `room_conflict` dan `lecturer_conflict` di Swagger UI.
+    Sengaja menyertakan 2 konflik awal agar dashboard Conflict Resolver langsung
+    memperlihatkan `room_conflict` dan `lecturer_conflict`, serta KRS APPROVED milik
+    Rina yang mengambil IF202-A dan IF203-A agar demo invalidasi KRS -> `revision`
+    dapat langsung ditunjukkan.
     """
     ruang_spec = [
         ("A101", "Ruang Kuliah A101", 40),
@@ -178,7 +184,6 @@ def seed_schedule_dummy_data(session: Session) -> None:
             session.flush()
         kelas_map[(kode_mk, nama_kelas)] = existing
 
-    # Seed jadwal hanya jika tabel jadwal masih kosong
     has_jadwal = session.scalars(select(Jadwal).limit(1)).first()
     if has_jadwal is None:
         d1 = dosen_map["0101018501"].id
@@ -235,12 +240,58 @@ def seed_schedule_dummy_data(session: Session) -> None:
             ]
         )
 
+    # Seed KRS APPROVED milik Rina (20240003) pada semester 20251 agar demo
+    # invalidasi KRS -> revision dan notifikasi mahasiswa langsung terlihat.
+    rina_krs = session.scalars(
+        select(KRS).where(KRS.nim == "20240003", KRS.semester == "20251")
+    ).first()
+    if rina_krs is None:
+        rina_krs = KRS(
+            nim="20240003",
+            semester="20251",
+            status=KRSStatus.APPROVED,
+            dosen_pa_id="PA001",
+        )
+        session.add(rina_krs)
+        session.flush()
+        session.add_all(
+            [
+                KRSDetail(
+                    krs_id=rina_krs.id,
+                    kode_mk="IF202",
+                    kelas_id=kelas_map[("IF202", "A")].id,
+                ),
+                KRSDetail(
+                    krs_id=rina_krs.id,
+                    kode_mk="IF203",
+                    kelas_id=kelas_map[("IF203", "A")].id,
+                ),
+            ]
+        )
+
     session.commit()
+
+
+def ensure_minggu8_schema_upgrades() -> None:
+    """Menambahkan kolom `sequence` pada tabel `jadwal` jika database lokal berasal
+    dari Minggu 7 (SQLAlchemy `create_all` tidak menambahkan kolom baru pada tabel lama).
+    """
+    inspector = inspect(engine)
+    if "jadwal" in inspector.get_table_names():
+        columns = {col["name"] for col in inspector.get_columns("jadwal")}
+        if "sequence" not in columns:
+            with engine.begin() as conn:
+                conn.execute(
+                    text("ALTER TABLE jadwal ADD COLUMN sequence INTEGER NOT NULL DEFAULT 0")
+                )
 
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     Base.metadata.create_all(bind=engine)
+    ensure_minggu8_schema_upgrades()
+    # Rangkai Observer + 3 Kanal + OutboxDispatcher SEKALI saat aplikasi start
+    init_notification_runtime()
     with SessionLocal() as session:
         seed_skala_nilai(session)
         seed_dummy_data(session)
@@ -249,14 +300,15 @@ async def lifespan(_: FastAPI):
 
 
 app = FastAPI(
-    title="SIMAK Mini — Modul Jadwal & Ruang (Minggu 7)",
+    title="SIMAK Mini — Modul Jadwal & Ruang Lengkap (Minggu 8)",
     description=(
-        "SEVIMA Mini terintegrasi (Modul KRS Minggu 5-6 + Modul Jadwal & Ruang Minggu 7): "
-        "Model Ruangan/Dosen/Kelas/Jadwal, Detektor Bentrok 3 Dimensi (Naive + Sort-and-Sweep), "
-        "SchedulingService (create/update/delete + pessimistic lock Ruangan->Dosen + capacity check), "
-        "dan pengujian Example-Based + Hypothesis Property-Based & Differential Testing."
+        "SEVIMA Mini terintegrasi (Modul KRS Minggu 5-6 + Modul Jadwal & Ruang Minggu 7-8): "
+        "Observer Pattern (Student/Lecturer/Admin) + 3 Kanal Log (Email/SMS/Push) dengan "
+        "Kunci Idempotensi, Transactional Outbox & Dispatcher setelah commit, Integrasi KRS "
+        "(aktor system -> revision), AI Rescheduler dengan 4-Stage Validator, Conflict Resolver "
+        "Dashboard (khusus admin_akademik), dan Ekspor Kalender iCalendar (.ics)."
     ),
-    version="0.7.0",
+    version="0.8.0",
     lifespan=lifespan,
 )
 
@@ -268,16 +320,21 @@ async def krs_error_handler(_: Request, exc: KRSError) -> JSONResponse:
 
 @app.exception_handler(ScheduleError)
 async def schedule_error_handler(_: Request, exc: ScheduleError) -> JSONResponse:
-    """Single exception handler polimorfik untuk `ScheduleError` dan semua turunannya.
-    `ScheduleConflictError` menimpa `body()` untuk menyertakan daftar konflik terstruktur.
-    """
+    """Single exception handler polimorfik untuk `ScheduleError` dan semua turunannya."""
     return JSONResponse(status_code=exc.status_code, content=exc.body())
 
 
 app.include_router(krs_router)
 app.include_router(schedule_router)
+app.include_router(conflict_resolver_router)
+
+
+@app.get("/conflict-resolver", response_class=HTMLResponse, tags=["Conflict Resolver UI"])
+def conflict_resolver_dashboard() -> HTMLResponse:
+    """Halaman dashboard HTML sederhana untuk admin akademik menyelesaikan bentrok jadwal."""
+    return HTMLResponse(_DASHBOARD_HTML_PATH.read_text(encoding="utf-8"))
 
 
 @app.get("/health", tags=["Health"])
 def health_check() -> dict[str, str]:
-    return {"status": "ok", "module": "jadwal-dan-ruang-minggu-7"}
+    return {"status": "ok", "module": "jadwal-dan-ruang-minggu-8"}

@@ -1,3 +1,4 @@
+import logging
 from dataclasses import dataclass
 from datetime import time
 from typing import Any, Optional
@@ -11,8 +12,19 @@ from app.exceptions import (
     ScheduleNotFoundError,
 )
 from app.models.krs import KRSDetail
+from app.models.outbox import OutboxEvent
 from app.models.schedule import Dosen, Jadwal, Kelas, Ruangan
+from app.observers.events import (
+    EventType,
+    ScheduleEvent,
+    build_schedule_snapshot,
+    format_slot_label,
+)
+from app.observers.outbox_dispatcher import OutboxDispatcher
 from app.services.conflict_detector import Conflict, detect_schedule_conflicts
+from app.services.krs_invalidator import KRSInvalidator
+
+logger = logging.getLogger("simak.scheduling")
 
 
 @dataclass(frozen=True)
@@ -28,20 +40,44 @@ class ScheduleData:
 
 
 class SchedulingService:
-    """Service layer pintu tunggal untuk manajemen Jadwal & Ruang (Minggu 7).
+    """Service layer pintu tunggal untuk manajemen Jadwal & Ruang (Minggu 7 & 8).
 
     Prinsip desain:
-    - Single Responsibility: bebas detail HTTP, menerima `Session`.
+    - Single Responsibility: bebas detail HTTP, menerima `Session` & opsional `OutboxDispatcher`.
     - `create_jadwal` dan `update_jadwal` berbagi satu method `_simpan()`.
     - Pessimistic locking dengan urutan tetap (`Ruangan` dulu, lalu `Dosen`)
       untuk mencegah race condition sekaligus mencegah deadlock.
     - Objek jadwal baru ditambahkan ke session PALING AKHIR setelah semua
       pemeriksaan lulus agar autoflush SQLAlchemy tidak membuat jadwal baru
       terdeteksi bentrok dengan dirinya sendiri.
+    - Minggu 8: Perubahan/penghapusan jadwal + invalidasi KRS terdampak + penulisan
+      baris `OutboxEvent` terjadi dalam SATU transaksi atomik. Pengiriman notifikasi
+      oleh `OutboxDispatcher` baru dijalankan SETELAH `commit()`.
     """
 
-    def __init__(self, session: Session) -> None:
+    def __init__(
+        self,
+        session: Session,
+        dispatcher: Optional[OutboxDispatcher] = None,
+    ) -> None:
         self._session = session
+        self._dispatcher = dispatcher
+        self._krs_invalidator = KRSInvalidator(session)
+
+    def _dispatch_after_commit(self) -> None:
+        """Menjalankan OutboxDispatcher SETELAH transaksi utama berhasil di-commit.
+
+        Kegagalan dispatcher TIDAK PERNAH membatalkan perubahan jadwal yang sudah sah.
+        """
+        if self._dispatcher is None:
+            return
+        try:
+            self._dispatcher.run(self._session)
+        except Exception:
+            logger.exception(
+                "OutboxDispatcher gagal dijalankan setelah commit; baris tetap tersimpan "
+                "di notification_outbox untuk dicoba ulang."
+            )
 
     def _kunci_ruangan_dan_dosen(
         self,
@@ -146,14 +182,21 @@ class SchedulingService:
                 f"(kuota={kelas.kuota}, terdaftar={terdaftar})."
             )
 
-    def _simpan(self, jadwal: Jadwal, data: ScheduleData, *, is_new: bool) -> Jadwal:
+    def _simpan(
+        self,
+        jadwal: Jadwal,
+        data: ScheduleData,
+        *,
+        is_new: bool,
+        before: Optional[dict[str, Any]] = None,
+    ) -> Jadwal:
         try:
             kelas = self._session.get(Kelas, data.kelas_id)
             if kelas is None:
                 raise ScheduleNotFoundError(f"Kelas dengan ID '{data.kelas_id}' tidak ditemukan.")
 
             # 1. Kunci ruangan lalu dosen (urutan tetap anti-deadlock)
-            ruangan, _dosen = self._kunci_ruangan_dan_dosen(data.ruangan_kode, data.dosen_id)
+            ruangan, dosen = self._kunci_ruangan_dan_dosen(data.ruangan_kode, data.dosen_id)
 
             # 2. Cari bentrok di DB (kecualikan diri sendiri saat update)
             exclude_id = None if is_new else jadwal.id
@@ -167,23 +210,56 @@ class SchedulingService:
             # 3. Cek kapasitas (max(kuota, terdaftar) <= kapasitas ruangan)
             self.check_capacity(ruangan, kelas)
 
-            # 4. Baru setelah semua lolos, salin field, tambahkan objek (jika baru), lalu commit
+            # 4. Baru setelah semua lolos, salin field dan tambahkan objek (jika baru)
             jadwal.kelas_id = data.kelas_id
             jadwal.ruangan_kode = data.ruangan_kode
             jadwal.dosen_id = data.dosen_id
             jadwal.hari = data.hari
             jadwal.jam_mulai = data.jam_mulai
             jadwal.jam_selesai = data.jam_selesai
+            jadwal.kelas = kelas
+            jadwal.ruangan = ruangan
+            jadwal.dosen = dosen
 
             if is_new:
                 self._session.add(jadwal)
+            else:
+                # Naikkan nomor SEQUENCE untuk iCalendar agar impor ulang memperbarui event
+                jadwal.sequence = (jadwal.sequence or 0) + 1
+                after = build_schedule_snapshot(jadwal)
 
+                # 5. Invalidasi KRS terdampak (dalam transaksi yang sama, tanpa commit sendiri)
+                reason = (
+                    f"Jadwal kelas {kelas.kode_mk}-{kelas.nama_kelas} berubah "
+                    f"dari {format_slot_label(before) if before else '-'} "
+                    f"ke {format_slot_label(after)}."
+                )
+                self._krs_invalidator.invalidate_for_kelas(jadwal.kelas_id, reason=reason)
+                if before and before.get("kelas_id") not in (None, jadwal.kelas_id):
+                    self._krs_invalidator.invalidate_for_kelas(
+                        int(before["kelas_id"]), reason=reason
+                    )
+
+                # 6. Tulis baris Transactional Outbox (dalam transaksi yang sama!)
+                event = ScheduleEvent(
+                    event_type=EventType.SCHEDULE_CHANGED,
+                    before=before,
+                    after=after,
+                )
+                self._session.add(OutboxEvent.from_event(event))
+
+            # Commit SEKALI untuk seluruh perubahan atomik
             self._session.commit()
         except Exception:
             self._session.rollback()
             raise
 
         self._session.refresh(jadwal)
+
+        # 7. Kirim notifikasi SETELAH commit via OutboxDispatcher
+        if not is_new:
+            self._dispatch_after_commit()
+
         return jadwal
 
     def create_jadwal(self, data: ScheduleData) -> Jadwal:
@@ -191,23 +267,45 @@ class SchedulingService:
         return self._simpan(Jadwal(), data, is_new=True)
 
     def update_jadwal(self, jadwal_id: int, data: ScheduleData) -> Jadwal:
-        """Memperbarui jadwal yang ada (mengecualikan dirinya sendiri dari cek bentrok)."""
+        """Memperbarui jadwal yang ada, menginvalidasi KRS terdampak, menulis outbox,
+        lalu men-dispatch notifikasi setelah commit.
+        """
         jadwal = self._session.get(Jadwal, jadwal_id)
         if jadwal is None:
             raise ScheduleNotFoundError(f"Jadwal dengan ID '{jadwal_id}' tidak ditemukan.")
-        return self._simpan(jadwal, data, is_new=False)
+        before = build_schedule_snapshot(jadwal)
+        return self._simpan(jadwal, data, is_new=False, before=before)
 
     def delete_jadwal(self, jadwal_id: int) -> None:
-        """Menghapus jadwal dalam satu transaksi (titik kait Observer Minggu 8)."""
+        """Menghapus jadwal, menginvalidasi KRS terdampak, menulis outbox
+        `schedule_deleted` dalam satu transaksi, lalu men-dispatch notifikasi
+        setelah commit.
+        """
         try:
             jadwal = self._session.get(Jadwal, jadwal_id)
             if jadwal is None:
                 raise ScheduleNotFoundError(f"Jadwal dengan ID '{jadwal_id}' tidak ditemukan.")
+
+            before = build_schedule_snapshot(jadwal)
+            reason = (
+                f"Jadwal kelas {before.get('kode_mk')}-{before.get('nama_kelas')} "
+                f"pada {format_slot_label(before)} telah dihapus."
+            )
+            self._krs_invalidator.invalidate_for_kelas(jadwal.kelas_id, reason=reason)
+
+            event = ScheduleEvent(
+                event_type=EventType.SCHEDULE_DELETED,
+                before=before,
+                after=None,
+            )
+            self._session.add(OutboxEvent.from_event(event))
             self._session.delete(jadwal)
             self._session.commit()
         except Exception:
             self._session.rollback()
             raise
+
+        self._dispatch_after_commit()
 
     def list_jadwals(self) -> list[Jadwal]:
         """Mengambil seluruh jadwal terurut berdasarkan hari dan jam mulai."""
