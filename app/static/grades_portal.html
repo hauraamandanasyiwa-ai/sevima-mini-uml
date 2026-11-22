@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SIMAK Mini — Portal Nilai &amp; Transkrip (Minggu 9-10)</title>
+  <style>
+    :root {
+      --bg: #f4f6fb;
+      --card: #ffffff;
+      --text: #1e293b;
+      --muted: #64748b;
+      --primary: #2563eb;
+      --success: #16a34a;
+      --danger: #dc2626;
+      --border: #e2e8f0;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+    header {
+      background: #0f172a;
+      color: #fff;
+      padding: 18px 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    header h1 { margin: 0; font-size: 1.2rem; }
+    header p { margin: 2px 0 0; font-size: 0.85rem; color: #94a3b8; }
+    .container { max-width: 1180px; margin: 24px auto; padding: 0 20px 40px; }
+    .grid { display: grid; grid-template-columns: 1fr 1.4fr; gap: 20px; }
+    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px 20px;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+      margin-bottom: 20px;
+    }
+    .card h2 { margin: 0 0 12px; font-size: 1.04rem; display: flex; justify-content: space-between; align-items: center; }
+    label { display: block; font-size: 0.84rem; font-weight: 600; margin: 10px 0 4px; color: #334155; }
+    input, select {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 0.9rem;
+    }
+    .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    button, a.btn {
+      border: none;
+      border-radius: 6px;
+      padding: 8px 13px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-success { background: var(--success); color: #fff; }
+    .btn-outline { background: #fff; color: var(--text); border: 1px solid var(--border); }
+    .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 14px; }
+    .stat-box { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 10px 12px; }
+    .stat-box .label { font-size: 0.76rem; color: var(--muted); }
+    .stat-box .val { font-size: 1.25rem; font-weight: 700; color: #1e3a8a; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
+    th, td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--border); }
+    th { background: #f8fafc; color: var(--muted); font-weight: 600; }
+    .alert { padding: 10px 14px; border-radius: 8px; margin-bottom: 14px; font-size: 0.88rem; display: none; }
+    .alert-ok { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+    .alert-err { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+    .muted { color: var(--muted); font-size: 0.83rem; }
+    .actions-bar { display: flex; gap: 8px; flex-wrap: wrap; }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>SIMAK Mini — Portal Input Nilai &amp; Transkrip Akademik</h1>
+      <p>Modul Nilai &amp; Transkrip (Minggu 9-10) • GPA Calculator + Audit Trail + PDF Generator</p>
+    </div>
+    <div class="actions-bar">
+      <a class="btn btn-outline" href="/conflict-resolver">Conflict Resolver</a>
+      <a class="btn btn-outline" href="/docs" target="_blank">Swagger API</a>
+    </div>
+  </header>
+
+  <div class="container">
+    <div id="alertBox" class="alert"></div>
+
+    <div class="grid">
+      <div>
+        <div class="card">
+          <h2>Form Input Nilai Dosen</h2>
+          <p class="muted">Business Rule: presensi &lt; 75% ditolak otomatis. IPK langsung ter-update setelah nilai disimpan.</p>
+          <form id="gradeForm">
+            <label for="nimSelect">Mahasiswa</label>
+            <select id="nimSelect" required></select>
+
+            <label for="mkSelect">Mata Kuliah</label>
+            <select id="mkSelect" required></select>
+
+            <div class="row-2">
+              <div>
+                <label for="semesterInput">Semester (5 digit)</label>
+                <input id="semesterInput" value="20251" maxlength="5" required />
+              </div>
+              <div>
+                <label for="nilaiSelect">Nilai Huruf</label>
+                <select id="nilaiSelect" required>
+                  <option value="A">A (4.00)</option>
+                  <option value="A-">A- (3.70)</option>
+                  <option value="B+">B+ (3.30)</option>
+                  <option value="B">B (3.00)</option>
+                  <option value="B-">B- (2.70)</option>
+                  <option value="C+">C+ (2.30)</option>
+                  <option value="C">C (2.00)</option>
+                  <option value="D">D (1.00)</option>
+                  <option value="E">E (0.00 - Tidak Lulus)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="row-2">
+              <div>
+                <label for="presensiInput">Presensi (%)</label>
+                <input id="presensiInput" type="number" step="0.5" min="0" max="100" value="90" required />
+              </div>
+              <div>
+                <label for="actorInput">Nama Dosen</label>
+                <input id="actorInput" value="Dr. Daniel Pratama" required />
+              </div>
+            </div>
+
+            <label for="reasonInput">Alasan (wajib jika memperbarui nilai yang sudah ada)</label>
+            <input id="reasonInput" placeholder="Mis. Input nilai akhir semester / Perbaikan remidi" />
+
+            <div style="margin-top:14px;">
+              <button type="submit" class="btn-primary">Simpan Nilai</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="card">
+          <h2>Riwayat Perubahan Nilai (Audit Trail)</h2>
+          <p class="muted">Setiap perubahan nilai tercatat otomatis di tabel <code>grade_history</code>.</p>
+          <div id="historyBox"><p class="muted">Memuat riwayat...</p></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="card">
+          <h2>
+            <span>Ringkasan Akademik &amp; Transkrip</span>
+            <div class="actions-bar">
+              <a id="btnHtml" class="btn btn-outline" href="#" target="_blank">Lihat Transkrip HTML</a>
+              <a id="btnPdf" class="btn btn-success" href="#" target="_blank">Download PDF</a>
+              <a id="btnCsv" class="btn btn-outline" href="#" target="_blank">CSV</a>
+            </div>
+          </h2>
+          <div class="stat-grid">
+            <div class="stat-box">
+              <div class="label">IPK Kumulatif</div>
+              <div class="val" id="statIpk">0.00</div>
+            </div>
+            <div class="stat-box">
+              <div class="label">Total SKS Lulus</div>
+              <div class="val" id="statSks">0</div>
+            </div>
+            <div class="stat-box">
+              <div class="label">Predikat Kelulusan</div>
+              <div class="val" style="font-size:1rem;" id="statPredikat">-</div>
+            </div>
+          </div>
+          <div id="gradesTableBox"><p class="muted">Memuat daftar nilai...</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function showAlert(msg, isError = false) {
+      const box = document.getElementById("alertBox");
+      box.textContent = msg;
+      box.className = "alert " + (isError ? "alert-err" : "alert-ok");
+      box.style.display = "block";
+    }
+
+    async function loadReference() {
+      const res = await fetch("/grades/reference");
+      const data = await res.json();
+      const nimSel = document.getElementById("nimSelect");
+      nimSel.innerHTML = data.mahasiswa
+        .map(m => `<option value="${m.nim}">${m.nim} — ${m.nama} (${m.prodi})</option>`)
+        .join("");
+      const mkSel = document.getElementById("mkSelect");
+      mkSel.innerHTML = data.mata_kuliah
+        .map(mk => `<option value="${mk.kode_mk}">${mk.kode_mk} — ${mk.nama} (${mk.sks} SKS)</option>`)
+        .join("");
+
+      nimSel.addEventListener("change", () => refreshStudent(nimSel.value));
+      if (data.mahasiswa.length) {
+        await refreshStudent(data.mahasiswa[0].nim);
+      }
+    }
+
+    async function refreshStudent(nim) {
+      document.getElementById("btnHtml").href = `/transcripts/${nim}/html`;
+      document.getElementById("btnPdf").href = `/transcripts/${nim}/pdf`;
+      document.getElementById("btnCsv").href = `/transcripts/${nim}/csv`;
+
+      const [tRes, gRes, hRes] = await Promise.all([
+        fetch(`/transcripts/${nim}`),
+        fetch(`/grades?nim=${encodeURIComponent(nim)}`),
+        fetch(`/grades/history/${nim}`),
+      ]);
+      const transcript = await tRes.json();
+      const grades = await gRes.json();
+      const history = await hRes.json();
+
+      document.getElementById("statIpk").textContent = Number(transcript.ipk).toFixed(2);
+      document.getElementById("statSks").textContent = `${transcript.total_sks_lulus} SKS`;
+      document.getElementById("statPredikat").textContent = transcript.predikat;
+
+      const gBox = document.getElementById("gradesTableBox");
+      if (!grades.length) {
+        gBox.innerHTML = `<p class="muted">Belum ada nilai untuk mahasiswa ini (IPK = 0.00).</p>`;
+      } else {
+        gBox.innerHTML = `
+          <table>
+            <thead>
+              <tr><th>Sem</th><th>MK</th><th>SKS</th><th>Nilai</th><th>Presensi</th><th>Aksi</th></tr>
+            </thead>
+            <tbody>
+              ${grades.map(g => `
+                <tr>
+                  <td>${g.semester}</td>
+                  <td><strong>${g.kode_mk}</strong> ${g.nama_mk}</td>
+                  <td>${g.sks}</td>
+                  <td><strong>${g.nilai_huruf}</strong> (${Number(g.nilai_angka).toFixed(2)})</td>
+                  <td>${Number(g.presensi_persen).toFixed(0)}%</td>
+                  <td><button class="btn-outline" onclick="editGrade(${g.id}, '${g.nilai_huruf}', '${nim}')">Edit</button></td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        `;
+      }
+
+      const hBox = document.getElementById("historyBox");
+      if (!history.length) {
+        hBox.innerHTML = `<p class="muted">Belum ada riwayat perubahan nilai untuk mahasiswa ini.</p>`;
+      } else {
+        hBox.innerHTML = `
+          <table>
+            <thead><tr><th>MK (Sem)</th><th>Perubahan</th><th>Oleh</th><th>Alasan</th></tr></thead>
+            <tbody>
+              ${history.map(h => `
+                <tr>
+                  <td>${h.kode_mk} (${h.semester})</td>
+                  <td><strong>${h.old_value} &rarr; ${h.new_value}</strong></td>
+                  <td>${h.changed_by}</td>
+                  <td class="muted">${h.reason}</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        `;
+      }
+    }
+
+    async function editGrade(gradeId, oldVal, nim) {
+      const newVal = prompt(`Ubah nilai dari ${oldVal} menjadi (A, A-, B+, B, B-, C+, C, D, E):`, oldVal);
+      if (!newVal) return;
+      const reason = prompt("Masukkan alasan perubahan nilai (wajib untuk audit trail):", "Perbaikan setelah remidi");
+      if (!reason) return;
+      const actor = document.getElementById("actorInput").value || "Dr. Daniel Pratama";
+
+      const res = await fetch(`/grades/${gradeId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nilai_huruf: newVal, changed_by: actor, reason }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        showAlert(data.detail || "Gagal mengubah nilai.", true);
+        return;
+      }
+      showAlert(`Nilai berhasil diubah (${oldVal} -> ${data.grade.nilai_huruf}). IPK terbaru: ${Number(data.ipk).toFixed(2)} (${data.predikat}).`);
+      await refreshStudent(nim);
+    }
+
+    document.getElementById("gradeForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const nim = document.getElementById("nimSelect").value;
+      const payload = {
+        nim,
+        kode_mk: document.getElementById("mkSelect").value,
+        semester: document.getElementById("semesterInput").value.trim(),
+        nilai_huruf: document.getElementById("nilaiSelect").value,
+        presensi_persen: Number(document.getElementById("presensiInput").value),
+        actor: document.getElementById("actorInput").value.trim(),
+        reason: document.getElementById("reasonInput").value.trim() || null,
+      };
+
+      const res = await fetch("/grades", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        showAlert(data.detail || "Gagal menyimpan nilai.", true);
+        return;
+      }
+      showAlert(`Nilai ${data.grade.kode_mk} = ${data.grade.nilai_huruf} tersimpan! IPS: ${Number(data.ips).toFixed(2)} | IPK otomatis: ${Number(data.ipk).toFixed(2)} (${data.predikat}).`);
+      document.getElementById("reasonInput").value = "";
+      await refreshStudent(nim);
+    });
+
+    loadReference();
+  </script>
+</body>
+</html>

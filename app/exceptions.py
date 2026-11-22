@@ -136,3 +136,41 @@ class ScheduleConflictError(ScheduleError):
             "detail": self.message,
             "conflicts": self.conflicts,
         }
+
+
+# ============================================================================
+# Hierarki Exception Polimorfik untuk Modul Nilai & Transkrip (Minggu 9-10)
+# ============================================================================
+
+
+class GradeError(Exception):
+    """Kelas dasar error modul nilai & transkrip."""
+
+    status_code: int = 400
+
+    def __init__(self, message: str, status_code: int | None = None) -> None:
+        super().__init__(message)
+        self.message = message
+        if status_code is not None:
+            self.status_code = status_code
+
+    def body(self) -> dict[str, Any]:
+        return {"detail": self.message}
+
+
+class GradeNotFoundError(GradeError):
+    """404 Not Found: data nilai, mahasiswa, atau mata kuliah tidak ditemukan."""
+
+    status_code: int = 404
+
+
+class InsufficientAttendanceError(GradeError):
+    """400 Bad Request: presensi mahasiswa < 75% sehingga nilai tidak boleh diinput."""
+
+    status_code: int = 400
+
+
+class InvalidGradeValueError(GradeError):
+    """400 Bad Request: nilai huruf tidak valid atau alasan perubahan nilai kosong."""
+
+    status_code: int = 400

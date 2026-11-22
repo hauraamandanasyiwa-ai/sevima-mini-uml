@@ -9,7 +9,8 @@ from sqlalchemy import inspect, select, text
 from sqlalchemy.orm import Session
 
 from app.database import Base, SessionLocal, engine
-from app.exceptions import KRSError, ScheduleError
+from app.exceptions import GradeError, KRSError, ScheduleError
+from app.models.grade import Grade, GradeHistory  # noqa: F401 - pastikan tabel terdaftar di metadata
 from app.models.krs import (
     DEFAULT_SKALA_NILAI,
     KRS,
@@ -22,6 +23,7 @@ from app.models.mahasiswa import Mahasiswa
 from app.models.outbox import OutboxEvent  # noqa: F401 - pastikan tabel terdaftar di metadata
 from app.models.schedule import Dosen, Jadwal, Kelas, Ruangan
 from app.routers.conflict_resolver import router as conflict_resolver_router
+from app.routers.grades import router as grades_router
 from app.routers.krs import router as krs_router
 from app.routers.schedule import router as schedule_router
 from app.runtime import init_notification_runtime
@@ -32,6 +34,7 @@ logging.basicConfig(
 )
 
 _DASHBOARD_HTML_PATH = Path(__file__).parent / "static" / "conflict_resolver.html"
+_GRADES_PORTAL_HTML_PATH = Path(__file__).parent / "static" / "grades_portal.html"
 
 
 def seed_skala_nilai(session: Session) -> None:
@@ -286,6 +289,56 @@ def ensure_minggu8_schema_upgrades() -> None:
                 )
 
 
+def seed_grades_dummy_data(session: Session) -> None:
+    """Mengisi contoh data nilai awal (Minggu 9-10) secara idempoten agar portal
+    nilai, perhitungan IPK/IPS, audit trail, dan transkrip PDF langsung siap didemokan.
+    """
+    from decimal import Decimal
+
+    has_grade = session.scalars(select(Grade).limit(1)).first()
+    if has_grade is not None:
+        return
+
+    seed_rows = [
+        # Budi (20240001): multi-semester + 1 MK diulang (IF101: D -> A)
+        ("20240001", "MA101", "20242", "B", Decimal("3.00"), Decimal("92.00"), "Prof. Rina Kusuma"),
+        ("20240001", "IF101", "20242", "D", Decimal("1.00"), Decimal("80.00"), "Dr. Daniel Pratama"),
+        ("20240001", "IF101", "20251", "A", Decimal("4.00"), Decimal("95.00"), "Dr. Daniel Pratama"),
+        ("20240001", "IF202", "20251", "A-", Decimal("3.70"), Decimal("88.00"), "Dr. Daniel Pratama"),
+        # Siti (20240002): contoh nilai sempurna Cum Laude
+        ("20240002", "IF101", "20242", "A", Decimal("4.00"), Decimal("96.00"), "Dr. Daniel Pratama"),
+        ("20240002", "MA101", "20242", "A", Decimal("4.00"), Decimal("94.00"), "Prof. Rina Kusuma"),
+        ("20240002", "IF202", "20251", "A", Decimal("4.00"), Decimal("92.00"), "Dr. Daniel Pratama"),
+    ]
+    grades_created: list[Grade] = []
+    for nim, kode_mk, sem, huruf, angka, presensi, actor in seed_rows:
+        g = Grade(
+            nim=nim,
+            kode_mk=kode_mk,
+            semester=sem,
+            nilai_huruf=huruf,
+            nilai_angka=angka,
+            presensi_persen=presensi,
+            updated_by=actor,
+        )
+        session.add(g)
+        grades_created.append(g)
+    session.flush()
+
+    # Contoh 1 baris audit trail untuk Budi agar tabel riwayat langsung terlihat
+    if grades_created:
+        session.add(
+            GradeHistory(
+                grade_id=grades_created[0].id,
+                old_value="B-",
+                new_value="B",
+                changed_by="Prof. Rina Kusuma",
+                reason="Penyesuaian nilai tugas proyek akhir",
+            )
+        )
+    session.commit()
+
+
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     Base.metadata.create_all(bind=engine)
@@ -296,19 +349,19 @@ async def lifespan(_: FastAPI):
         seed_skala_nilai(session)
         seed_dummy_data(session)
         seed_schedule_dummy_data(session)
+        seed_grades_dummy_data(session)
     yield
 
 
 app = FastAPI(
-    title="SIMAK Mini — Modul Jadwal & Ruang Lengkap (Minggu 8)",
+    title="SIMAK Mini — Modul Nilai & Transkrip (Minggu 9-10)",
     description=(
-        "SEVIMA Mini terintegrasi (Modul KRS Minggu 5-6 + Modul Jadwal & Ruang Minggu 7-8): "
-        "Observer Pattern (Student/Lecturer/Admin) + 3 Kanal Log (Email/SMS/Push) dengan "
-        "Kunci Idempotensi, Transactional Outbox & Dispatcher setelah commit, Integrasi KRS "
-        "(aktor system -> revision), AI Rescheduler dengan 4-Stage Validator, Conflict Resolver "
-        "Dashboard (khusus admin_akademik), dan Ekspor Kalender iCalendar (.ics)."
+        "SEVIMA Mini terintegrasi (KRS Minggu 5-6 + Jadwal & Ruang Minggu 7-8 + "
+        "Modul Nilai & Transkrip Minggu 9-10): Grade Management (presensi >= 75%), "
+        "GPA Calculator (IPS, IPK, MK diulang ambil tertinggi), Audit Trail (grade_history), "
+        "dan Generator Transkrip Resmi PDF (ReportLab) + HTML + CSV."
     ),
-    version="0.8.0",
+    version="0.9.0",
     lifespan=lifespan,
 )
 
@@ -324,9 +377,16 @@ async def schedule_error_handler(_: Request, exc: ScheduleError) -> JSONResponse
     return JSONResponse(status_code=exc.status_code, content=exc.body())
 
 
+@app.exception_handler(GradeError)
+async def grade_error_handler(_: Request, exc: GradeError) -> JSONResponse:
+    """Single exception handler polimorfik untuk `GradeError` dan semua turunannya."""
+    return JSONResponse(status_code=exc.status_code, content=exc.body())
+
+
 app.include_router(krs_router)
 app.include_router(schedule_router)
 app.include_router(conflict_resolver_router)
+app.include_router(grades_router)
 
 
 @app.get("/conflict-resolver", response_class=HTMLResponse, tags=["Conflict Resolver UI"])
@@ -335,6 +395,12 @@ def conflict_resolver_dashboard() -> HTMLResponse:
     return HTMLResponse(_DASHBOARD_HTML_PATH.read_text(encoding="utf-8"))
 
 
+@app.get("/grades-portal", response_class=HTMLResponse, tags=["Grades & Transcripts UI"])
+def grades_portal_page() -> HTMLResponse:
+    """Form web dosen untuk input/edit nilai, melihat IPK otomatis, audit trail, dan download PDF."""
+    return HTMLResponse(_GRADES_PORTAL_HTML_PATH.read_text(encoding="utf-8"))
+
+
 @app.get("/health", tags=["Health"])
 def health_check() -> dict[str, str]:
-    return {"status": "ok", "module": "jadwal-dan-ruang-minggu-8"}
+    return {"status": "ok", "module": "nilai-dan-transkrip-minggu-9-10"}

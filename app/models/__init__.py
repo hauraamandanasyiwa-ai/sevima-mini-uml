@@ -12,6 +12,7 @@ from app.models.krs import (
     SkalaNilai,
     prerequisites,
 )
+from app.models.grade import Grade, GradeHistory
 from app.models.mahasiswa import Mahasiswa
 from app.models.outbox import OutboxEvent, OutboxStatus
 from app.models.schedule import Dosen, Jadwal, Kelas, Ruangan
@@ -36,4 +37,6 @@ __all__ = [
     "Jadwal",
     "OutboxEvent",
     "OutboxStatus",
+    "Grade",
+    "GradeHistory",
 ]
