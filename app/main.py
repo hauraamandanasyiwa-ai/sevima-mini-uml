@@ -361,7 +361,7 @@ app = FastAPI(
         "GPA Calculator (IPS, IPK, MK diulang ambil tertinggi), Audit Trail (grade_history), "
         "dan Generator Transkrip Resmi PDF (ReportLab) + HTML + CSV."
     ),
-    version="0.9.0",
+    version="0.10.0",
     lifespan=lifespan,
 )
 
